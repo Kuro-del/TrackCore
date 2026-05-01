@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>TrackCore – Menú principal</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="app">
+  <header class="appbar">
+    <div class="brand">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 5a2 2 0 0 1 2-2h6v4H5a2 2 0 0 1-2-2zm10-2h4a2 2 0 0 1 2 2v4h-6V3zm6 10v4a2 2 0 0 1-2 2h-4v-6h6zM11 13v6H5a2 2 0 0 1-2-2v-4h8z" />
+      </svg>
+      <strong>TrackCore</strong>
+    </div>
+  </header>
+
+  <main class="menu-main">
+    <section class="menu-hero card">
+      <p class="menu-kicker">Sistema de inventario automotriz</p>
+      
+      <h1 class="menu-title">
+        Bienvenido a Productos Automotrices de Nicaragua
+      </h1>
+
+      <p class="menu-subtitle">
+        Gestiona tu inventario de repuestos, lubricantes y demás productos automotrices
+        desde un solo sistema. Accede al panel principal, consulta movimientos de inventario
+        y revisa reportes de control.
+      </p>
+
+      <div class="menu-grid">
+        <a href="panel.html" class="menu-card">
+          <div class="menu-card-body">
+            <h2>Panel de productos</h2>
+            <p>
+              Consulta, registra, edita y elimina productos automotrices del inventario principal.
+            </p>
+          </div>
+          <span class="menu-card-cta">Entrar al panel →</span>
+        </a>
+
+        <a href="kardex.html" class="menu-card">
+          <div class="menu-card-body">
+            <h2>Kardex de inventario</h2>
+            <p>
+              Revisa entradas, salidas y existencias de cada producto automotriz por fecha.
+            </p>
+          </div>
+          <span class="menu-card-cta">Ir a Kardex →</span>
+        </a>
+
+        <a href="reportes.html" class="menu-card">
+          <div class="menu-card-body">
+            <h2>Reportes</h2>
+            <p>
+              Visualiza resúmenes de stock, movimientos y rendimiento general del inventario.
+            </p>
+          </div>
+          <span class="menu-card-cta">Ir a reportes →</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="card quick-search">
+      <h2 class="menu-kicker">Búsqueda rápida</h2>
+
+      <p class="menu-subtitle">
+        Realiza búsquedas rápidas de productos, movimientos o reportes dentro del sistema.
+      </p>
+
+      <div class="row">
+        <div class="field">
+          <label for="dataType">Tipo de búsqueda</label>
+          <div class="select-wrap">
+            <select id="dataType">
+              <option value="all">Todo</option>
+              <option value="products">Productos</option>
+              <option value="moves">Movimientos de inventario</option>
+              <option value="reports">Reportes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field field-grow">
+          <label for="globalSearch">Buscar</label>
+
+          <div class="search-field">
+            <span class="search-icon">🔍</span>
+            <input
+              id="globalSearch"
+              type="text"
+              placeholder="Buscar productos automotrices, marcas o movimientos..."
+            />
+          </div>
+
+          <p id="searchHelp" class="muted">
+            Ejemplos: "bujías NGK", "aceite 15W40", "filtro de aire Toyota".
+          </p>
+        </div>
+
+        <div class="field">
+          <label>&nbsp;</label>
+          <button id="searchBtn" class="btn primary">Buscar</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const dataTypeSel = document.getElementById('dataType');
+    const searchInput = document.getElementById('globalSearch');
+    const searchHelp = document.getElementById('searchHelp');
+    const searchBtn = document.getElementById('searchBtn');
+
+    const placeholders = {
+      all: 'Buscar productos, movimientos o reportes...',
+      products: 'Buscar productos por código, nombre, marca o categoría...',
+      moves: 'Buscar movimientos por producto, tipo o fecha...',
+      reports: 'Buscar reportes por rango, tipo o resumen...'
+    };
+
+    const helpTexts = {
+      all: 'Ejemplos: "bujías NGK", "aceite 15W40", "movimiento filtro de aire".',
+      products: 'Ejemplos: "batería 12V", "filtro de aceite", "BOSCH-102".',
+      moves: 'Ejemplos: "entrada de llantas", "salida de aceite", "movimiento 10/03/2026".',
+      reports: 'Ejemplos: "reporte de stock", "ventas del mes", "productos agotados".'
+    };
+
+    function updateSearchHints() {
+      const type = dataTypeSel.value;
+      searchInput.placeholder = placeholders[type] || placeholders.all;
+      searchHelp.textContent = helpTexts[type] || helpTexts.all;
+    }
+
+    dataTypeSel.addEventListener('change', updateSearchHints);
+    updateSearchHints();
+
+    searchBtn.addEventListener('click', () => {
+      const query = searchInput.value.trim();
+      const type = dataTypeSel.value;
+
+      if (!query) {
+        alert('Escribe un término para buscar.');
+        return;
+      }
+
+      if (type === 'products' || type === 'all') {
+        window.location.href = `panel.html?search=${encodeURIComponent(query)}`;
+        return;
+      }
+
+      if (type === 'moves') {
+        window.location.href = `kardex.html?search=${encodeURIComponent(query)}`;
+        return;
+      }
+
+      if (type === 'reports') {
+        window.location.href = `reportes.html?search=${encodeURIComponent(query)}`;
+      }
+    });
+
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        searchBtn.click();
+      }
+    });
+  </script>
+</body>
+</html>

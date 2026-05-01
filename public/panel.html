@@ -1,0 +1,975 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>TrackCore – Panel de Productos Automotrices</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    .panel-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .summary-card {
+      border-radius: 16px;
+      padding: 1rem 1.15rem;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .summary-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .summary-value {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .summary-help {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .panel-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+
+    .panel-toolbar .field {
+      flex: 1 1 190px;
+      min-width: 180px;
+    }
+
+    .panel-toolbar .field.field-wide {
+      flex: 2 1 280px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid #bfd0e7;
+      background: #eef4fc;
+      color: #244d89;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: none;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .table-input {
+      width: 100%;
+      min-width: 120px;
+    }
+
+    .grid td.actions-cell {
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      padding: 1rem 0.25rem 0.25rem;
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+
+    .hint-block {
+      margin-top: 0.8rem;
+      padding: 0.8rem 1rem;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .field-inline-help {
+      font-size: 0.74rem;
+      margin-top: 0.2rem;
+      color: var(--muted);
+      opacity: 0.9;
+    }
+
+    @media (max-width: 980px) {
+      .panel-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .panel-summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="appbar">
+    <div class="brand">
+      <a href="index.html" class="icon-btn" title="Volver al menú" aria-label="Volver al menú">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M15.7 5.3a1 1 0 0 1 0 1.4L11.4 11l4.3 4.3a1 1 0 1 1-1.4 1.4l-5-5a1 1 0 0 1 0-1.4l5-5a1 1 0 0 1 1.4 0z" />
+        </svg>
+      </a>
+      <strong>Panel de Productos Automotrices</strong>
+    </div>
+
+    <div class="actions">
+      <button id="refreshBtn" class="btn ghost" title="Actualizar datos">↻</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="controls card">
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span>Módulo activo: inventario de productos automotrices</span>
+      </div>
+
+      <h1 id="viewTitle">Gestión de productos automotrices</h1>
+      <p id="viewDescription" class="muted">
+        Desde aquí puedes consultar, buscar, insertar, editar y eliminar productos automotrices de tu inventario.
+      </p>
+
+      <div class="panel-toolbar">
+        <div class="field">
+          <label for="productsTable">Tabla detectada</label>
+          <div class="select-wrap">
+            <select id="productsTable"></select>
+          </div>
+          <div class="field-inline-help">El sistema intentará seleccionar automáticamente la tabla de productos.</div>
+        </div>
+
+        <div class="field field-wide">
+          <label for="searchInput">Buscar producto</label>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Buscar por código, nombre, descripción, marca o cualquier dato..."
+          />
+        </div>
+
+        <div class="field">
+          <label for="brandFilter">Marca</label>
+          <input
+            id="brandFilter"
+            type="text"
+            placeholder="Ej: Bosch, NGK, Castrol"
+          />
+        </div>
+
+        <div class="field">
+          <label for="categoryFilter">Categoría</label>
+          <input
+            id="categoryFilter"
+            type="text"
+            placeholder="Ej: Filtros, aceites, bujías"
+          />
+        </div>
+
+        <div class="field">
+          <label for="stockFilter">Estado de stock</label>
+          <div class="select-wrap">
+            <select id="stockFilter">
+              <option value="all">Todos</option>
+              <option value="in-stock">Con stock</option>
+              <option value="low-stock">Stock bajo</option>
+              <option value="out-of-stock">Agotados</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="pageSize">Filas por página</label>
+          <div class="select-wrap">
+            <select id="pageSize">
+              <option>10</option>
+              <option>25</option>
+              <option selected>50</option>
+              <option>100</option>
+              <option>200</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>&nbsp;</label>
+          <button id="insertBtn" class="btn btn-light">+ Nuevo producto</button>
+        </div>
+      </div>
+
+      <div id="hint" class="hint-block">
+        Cargando configuración del panel...
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 style="margin-top:0;">Resumen rápido</h2>
+
+      <div class="panel-summary">
+        <div class="summary-card">
+          <span class="summary-label">Productos cargados</span>
+          <span class="summary-value" id="sumProducts">0</span>
+          <span class="summary-help">Registros visibles en la tabla seleccionada</span>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-label">Unidades en inventario</span>
+          <span class="summary-value" id="sumStock">0</span>
+          <span class="summary-help">Suma del stock detectado</span>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-label">Stock bajo</span>
+          <span class="summary-value" id="sumLowStock">0</span>
+          <span class="summary-help">Productos con stock menor o igual a 5</span>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-label">Agotados</span>
+          <span class="summary-value" id="sumOutStock">0</span>
+          <span class="summary-help">Productos con stock en 0</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 style="margin-top:0;">Listado de productos</h2>
+
+      <div class="table-wrap">
+        <table id="grid" class="grid">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="pager">
+        <button id="prevBtn" class="btn ghost">◀</button>
+        <span id="pageInfo" class="muted">Página 1/1</span>
+        <button id="nextBtn" class="btn ghost">▶</button>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="insertModal" class="modal">
+    <form id="insertForm" method="dialog" class="card">
+      <header class="modal-header">
+        <h3 id="insertTitle">Registrar nuevo producto automotriz</h3>
+        <button type="button" id="closeInsert" class="btn ghost">✕</button>
+      </header>
+
+      <div id="insertFields" class="grid-form"></div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn ghost" id="cancelInsert">Cancelar</button>
+        <button type="submit" class="btn primary">Guardar producto</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="viewerModal" class="modal">
+    <div class="card">
+      <header class="modal-header">
+        <h3 id="viewerTitle">Contenido</h3>
+        <button type="button" id="closeViewer" class="btn ghost">✕</button>
+      </header>
+      <pre id="viewerBody" class="viewer"></pre>
+      <footer class="modal-footer">
+        <button type="button" id="copyViewer" class="btn">Copiar</button>
+        <button type="button" id="okViewer" class="btn primary">OK</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const productsTableSel = document.getElementById('productsTable');
+    const refreshBtn       = document.getElementById('refreshBtn');
+    const searchInput      = document.getElementById('searchInput');
+    const brandFilter      = document.getElementById('brandFilter');
+    const categoryFilter   = document.getElementById('categoryFilter');
+    const stockFilter      = document.getElementById('stockFilter');
+    const pageSizeSel      = document.getElementById('pageSize');
+    const insertBtn        = document.getElementById('insertBtn');
+    const hint             = document.getElementById('hint');
+
+    const grid            = document.getElementById('grid');
+    const thead           = grid.querySelector('thead');
+    const tbody           = grid.querySelector('tbody');
+    const prevBtn         = document.getElementById('prevBtn');
+    const nextBtn         = document.getElementById('nextBtn');
+    const pageInfo        = document.getElementById('pageInfo');
+
+    const sumProducts     = document.getElementById('sumProducts');
+    const sumStock        = document.getElementById('sumStock');
+    const sumLowStock     = document.getElementById('sumLowStock');
+    const sumOutStock     = document.getElementById('sumOutStock');
+
+    const insertModal     = document.getElementById('insertModal');
+    const insertForm      = document.getElementById('insertForm');
+    const insertFields    = document.getElementById('insertFields');
+    const insertTitle     = document.getElementById('insertTitle');
+    const closeInsert     = document.getElementById('closeInsert');
+    const cancelInsert    = document.getElementById('cancelInsert');
+
+    const viewerModal     = document.getElementById('viewerModal');
+    const viewerTitle     = document.getElementById('viewerTitle');
+    const viewerBody      = document.getElementById('viewerBody');
+    const closeViewer     = document.getElementById('closeViewer');
+    const okViewer        = document.getElementById('okViewer');
+    const copyViewer      = document.getElementById('copyViewer');
+
+    const toast           = document.getElementById('toast');
+
+    let allRows = [];
+    let columns = [];
+    let page = 1;
+    let currentSchema = '';
+    let currentTable = '';
+    let pkColumn = '';
+    let brandColumn = '';
+    let categoryColumn = '';
+    let stockColumn = '';
+
+    function normalizeText(value) {
+      return (value ?? '')
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function labelFor(schema, table) {
+      return schema.toLowerCase() === 'dbo' ? table : `${schema}.${table}`;
+    }
+
+    function showToast(message, ok = true) {
+      toast.textContent = message;
+      toast.className = 'toast ' + (ok ? 'ok' : 'err');
+      toast.style.opacity = 1;
+      setTimeout(() => {
+        toast.style.opacity = 0;
+      }, 2200);
+    }
+
+    function safeNumber(value) {
+      if (value === null || value === undefined || value === '') return 0;
+      const cleaned = value.toString().replace(/[^0-9.-]/g, '');
+      const num = Number(cleaned);
+      return Number.isFinite(num) ? num : 0;
+    }
+
+    function openViewer(title, content) {
+      viewerTitle.textContent = title;
+      viewerBody.textContent = (content ?? '').toString();
+      viewerModal.showModal();
+    }
+
+    [closeViewer, okViewer].forEach(btn => {
+      btn.onclick = () => viewerModal.close();
+    });
+
+    copyViewer.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(viewerBody.textContent);
+        showToast('Contenido copiado');
+      } catch {
+        showToast('No se pudo copiar', false);
+      }
+    };
+
+    function findColumnByPatterns(patterns) {
+      for (const column of columns) {
+        const normalizedColumn = normalizeText(column).replace(/[\s_]/g, '');
+        for (const pattern of patterns) {
+          if (normalizedColumn.includes(pattern)) return column;
+        }
+      }
+      return '';
+    }
+
+    function detectImportantColumns() {
+      pkColumn = findColumnByPatterns([
+        'idproducto',
+        'productoid',
+        'idrepuesto',
+        'idarticulo',
+        'iditem',
+        'idinventario',
+        'id',
+        'codigoproducto',
+        'codproducto',
+        'codigo',
+        'sku'
+      ]) || columns[0] || '';
+
+      brandColumn = findColumnByPatterns([
+        'marca',
+        'brand',
+        'fabricante'
+      ]);
+
+      categoryColumn = findColumnByPatterns([
+        'categoria',
+        'tipo',
+        'linea',
+        'familia',
+        'rubro',
+        'grupo'
+      ]);
+
+      stockColumn = findColumnByPatterns([
+        'stockactual',
+        'stock',
+        'existencia',
+        'cantidad',
+        'disponible',
+        'inventario'
+      ]);
+    }
+
+    function buildHead() {
+      thead.innerHTML = '';
+      const tr = document.createElement('tr');
+
+      columns.forEach(column => {
+        const th = document.createElement('th');
+        th.textContent = column;
+        tr.appendChild(th);
+      });
+
+      const actionsTh = document.createElement('th');
+      actionsTh.textContent = 'Acciones';
+      tr.appendChild(actionsTh);
+
+      thead.appendChild(tr);
+    }
+
+    function getSelectedTableParts() {
+      const value = productsTableSel.value || '';
+      const parts = value.split('|');
+      return {
+        schema: parts[0] || '',
+        table: parts[1] || ''
+      };
+    }
+
+    function makeEditableControl(column, value) {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'table-input';
+      input.value = (value ?? '').toString();
+      input.dataset.col = column;
+      return input;
+    }
+
+    function getFilteredRows() {
+      const term = normalizeText(searchInput.value);
+      const brandTerm = normalizeText(brandFilter.value);
+      const categoryTerm = normalizeText(categoryFilter.value);
+      const stockState = stockFilter.value;
+
+      let filtered = [...allRows];
+
+      if (brandTerm && brandColumn) {
+        filtered = filtered.filter(row =>
+          normalizeText(row[brandColumn]).includes(brandTerm)
+        );
+      }
+
+      if (categoryTerm && categoryColumn) {
+        filtered = filtered.filter(row =>
+          normalizeText(row[categoryColumn]).includes(categoryTerm)
+        );
+      }
+
+      if (stockState !== 'all' && stockColumn) {
+        filtered = filtered.filter(row => {
+          const stock = safeNumber(row[stockColumn]);
+
+          if (stockState === 'in-stock') return stock > 0;
+          if (stockState === 'low-stock') return stock > 0 && stock <= 5;
+          if (stockState === 'out-of-stock') return stock <= 0;
+
+          return true;
+        });
+      }
+
+      if (term) {
+        filtered = filtered.filter(row =>
+          columns.some(column =>
+            normalizeText(row[column]).includes(term)
+          )
+        );
+      }
+
+      return filtered;
+    }
+
+    function updateSummary(rows) {
+      sumProducts.textContent = rows.length.toString();
+
+      if (!stockColumn) {
+        sumStock.textContent = '0';
+        sumLowStock.textContent = '0';
+        sumOutStock.textContent = '0';
+        return;
+      }
+
+      const totalStock = rows.reduce((acc, row) => acc + safeNumber(row[stockColumn]), 0);
+      const lowStock = rows.filter(row => {
+        const stock = safeNumber(row[stockColumn]);
+        return stock > 0 && stock <= 5;
+      }).length;
+      const outStock = rows.filter(row => safeNumber(row[stockColumn]) <= 0).length;
+
+      sumStock.textContent = totalStock.toString();
+      sumLowStock.textContent = lowStock.toString();
+      sumOutStock.textContent = outStock.toString();
+    }
+
+    function buildBody() {
+      tbody.innerHTML = '';
+
+      const filteredRows = getFilteredRows();
+      updateSummary(filteredRows);
+
+      const size = parseInt(pageSizeSel.value, 10);
+      const totalPages = Math.max(1, Math.ceil(filteredRows.length / size));
+      page = Math.min(page, totalPages);
+
+      const start = (page - 1) * size;
+      const pageRows = filteredRows.slice(start, start + size);
+
+      pageInfo.textContent = `Página ${page}/${totalPages} — ${filteredRows.length} registros`;
+      prevBtn.disabled = page <= 1;
+      nextBtn.disabled = page >= totalPages;
+
+      if (!columns.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 1;
+        td.innerHTML = `
+          <div class="empty-state">
+            <strong>No hay columnas para mostrar.</strong>
+            <span class="muted">Verifica que la tabla seleccionada tenga registros o que el backend esté respondiendo correctamente.</span>
+          </div>
+        `;
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      if (!pageRows.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = columns.length + 1;
+        td.innerHTML = `
+          <div class="empty-state">
+            <strong>No se encontraron productos.</strong>
+            <span class="muted">Prueba cambiando los filtros o registra un nuevo producto automotriz.</span>
+          </div>
+        `;
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      pageRows.forEach(row => {
+        const tr = document.createElement('tr');
+
+        columns.forEach(column => {
+          const td = document.createElement('td');
+          const value = row[column] ?? '';
+
+          if (column === pkColumn) {
+            td.textContent = value;
+            td.className = 'pk';
+            td.ondblclick = () => openViewer(column, value);
+          } else {
+            const input = makeEditableControl(column, value);
+            td.appendChild(input);
+            td.ondblclick = () => openViewer(column, input.value);
+          }
+
+          tr.appendChild(td);
+        });
+
+        const actionsTd = document.createElement('td');
+        actionsTd.className = 'actions-cell';
+
+        const actionsWrap = document.createElement('div');
+        actionsWrap.className = 'table-actions';
+
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'btn small primary';
+        saveBtn.textContent = 'Guardar';
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn small danger';
+        deleteBtn.textContent = 'Borrar';
+
+        saveBtn.onclick = async () => {
+          try {
+            const changes = {};
+            tr.querySelectorAll('input[data-col]').forEach(input => {
+              changes[input.dataset.col] = input.value;
+            });
+
+            const pkValue = row[pkColumn];
+
+            const response = await fetch(`/api/table/${currentSchema}/${currentTable}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ pkValue, changes })
+            });
+
+            const result = await response.json();
+
+            if (result.updated) {
+              columns.forEach(column => {
+                if (column !== pkColumn) {
+                  const input = tr.querySelector(`input[data-col="${column}"]`);
+                  if (input) row[column] = input.value;
+                }
+              });
+
+              buildBody();
+              showToast('Producto actualizado');
+            } else {
+              showToast(result.error || 'No se pudo actualizar', false);
+            }
+          } catch (error) {
+            showToast('Error al actualizar el producto', false);
+          }
+        };
+
+        deleteBtn.onclick = async () => {
+          const pkValue = row[pkColumn];
+          if (!confirm(`¿Deseas borrar este producto?\n\n${pkColumn}: ${pkValue}`)) return;
+
+          try {
+            const response = await fetch(`/api/table/${currentSchema}/${currentTable}`, {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ pkValue })
+            });
+
+            const result = await response.json();
+
+            if (result.deleted) {
+              allRows = allRows.filter(item => item[pkColumn] !== pkValue);
+              buildBody();
+              showToast('Producto borrado');
+            } else {
+              showToast(result.error || 'No se pudo borrar', false);
+            }
+          } catch (error) {
+            showToast('Error al borrar el producto', false);
+          }
+        };
+
+        actionsWrap.appendChild(saveBtn);
+        actionsWrap.appendChild(deleteBtn);
+        actionsTd.appendChild(actionsWrap);
+        tr.appendChild(actionsTd);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function buildInsertFields() {
+      insertFields.innerHTML = '';
+
+      if (!columns.length) return;
+
+      columns.forEach(column => {
+        const wrap = document.createElement('div');
+        wrap.className = 'field';
+
+        const label = document.createElement('label');
+        label.textContent = column + (column === pkColumn ? ' (autogenerado / PK)' : '');
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = column;
+        input.placeholder = column === pkColumn ? 'No editar' : `Escribe ${column}...`;
+
+        if (column === pkColumn) {
+          input.disabled = true;
+        }
+
+        wrap.appendChild(label);
+        wrap.appendChild(input);
+        insertFields.appendChild(wrap);
+      });
+    }
+
+    function detectProductTables(tables) {
+      const patterns = [
+        'producto',
+        'productos',
+        'product',
+        'products',
+        'inventario',
+        'inventory',
+        'repuesto',
+        'repuestos',
+        'articulo',
+        'articulos',
+        'item',
+        'items'
+      ];
+
+      return tables.filter(item => {
+        const full = normalizeText(`${item.schema_name} ${item.table_name}`);
+        return patterns.some(pattern => full.includes(pattern));
+      });
+    }
+
+    async function fetchTables() {
+      const response = await fetch('/api/tables');
+      const data = await response.json();
+
+      const detected = detectProductTables(data);
+      const tableList = detected.length ? detected : data;
+
+      productsTableSel.innerHTML = '';
+
+      tableList.forEach(item => {
+        const option = document.createElement('option');
+        option.value = `${item.schema_name}|${item.table_name}`;
+        option.textContent = labelFor(item.schema_name, item.table_name);
+        productsTableSel.appendChild(option);
+      });
+
+      if (!tableList.length) {
+        hint.textContent = 'No se encontraron tablas disponibles en la base de datos.';
+        return false;
+      }
+
+      if (detected.length) {
+        hint.textContent =
+          'Se detectó automáticamente una tabla relacionada con productos automotrices. Puedes cambiarla si lo necesitas.';
+      } else {
+        hint.textContent =
+          'No se detectó una tabla claramente relacionada con productos. Selecciona manualmente la tabla correcta.';
+      }
+
+      return true;
+    }
+
+    async function loadSelectedTable() {
+      const { schema, table } = getSelectedTableParts();
+
+      if (!schema || !table) {
+        hint.textContent = 'Selecciona una tabla de productos para comenzar.';
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+        allRows = [];
+        columns = [];
+        updateSummary([]);
+        return;
+      }
+
+      currentSchema = schema;
+      currentTable = table;
+
+      hint.textContent = `Cargando datos de: ${labelFor(schema, table)}...`;
+
+      try {
+        const response = await fetch(`/api/table/${schema}/${table}?top=500`);
+        const rows = await response.json();
+
+        allRows = Array.isArray(rows) ? rows : [];
+        columns = allRows.length ? Object.keys(allRows[0]) : [];
+
+        detectImportantColumns();
+
+        if (!columns.length) {
+          thead.innerHTML = '';
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="1">
+                <div class="empty-state">
+                  <strong>La tabla no tiene registros para mostrar.</strong>
+                  <span class="muted">Inserta el primer producto desde tu base de datos o ajusta el backend para exponer las columnas aunque no existan filas.</span>
+                </div>
+              </td>
+            </tr>
+          `;
+          updateSummary([]);
+          buildInsertFields();
+          hint.textContent = `Tabla cargada: ${labelFor(schema, table)}. No hay registros todavía.`;
+          return;
+        }
+
+        buildHead();
+        page = 1;
+        buildBody();
+        buildInsertFields();
+
+        hint.textContent =
+          `Tabla cargada: ${labelFor(schema, table)}. PK detectada: ${pkColumn || 'no detectada'}.` +
+          (stockColumn ? ` Columna de stock detectada: ${stockColumn}.` : ' No se detectó columna de stock.');
+
+      } catch (error) {
+        thead.innerHTML = '';
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="1">
+              <div class="empty-state">
+                <strong>No se pudieron cargar los productos.</strong>
+                <span class="muted">Revisa el backend, la conexión con SQL Server o el nombre de la tabla.</span>
+              </div>
+            </td>
+          </tr>
+        `;
+        updateSummary([]);
+        hint.textContent = 'Error al cargar la tabla seleccionada.';
+        showToast('Error al cargar productos', false);
+      }
+    }
+
+    productsTableSel.addEventListener('change', () => {
+      page = 1;
+      loadSelectedTable();
+    });
+
+    refreshBtn.addEventListener('click', async () => {
+      try {
+        const selectedBefore = productsTableSel.value;
+        const ok = await fetchTables();
+        if (!ok) return;
+
+        if ([...productsTableSel.options].some(opt => opt.value === selectedBefore)) {
+          productsTableSel.value = selectedBefore;
+        }
+
+        await loadSelectedTable();
+        showToast('Panel actualizado');
+      } catch {
+        showToast('No se pudo actualizar', false);
+      }
+    });
+
+    [searchInput, brandFilter, categoryFilter].forEach(input => {
+      input.addEventListener('input', () => {
+        page = 1;
+        buildBody();
+      });
+    });
+
+    [stockFilter, pageSizeSel].forEach(select => {
+      select.addEventListener('change', () => {
+        page = 1;
+        buildBody();
+      });
+    });
+
+    prevBtn.addEventListener('click', () => {
+      page = Math.max(1, page - 1);
+      buildBody();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      page = page + 1;
+      buildBody();
+    });
+
+    insertBtn.addEventListener('click', () => {
+      if (!columns.length) {
+        showToast('Primero debes cargar una tabla con columnas disponibles', false);
+        return;
+      }
+
+      insertTitle.textContent = 'Registrar nuevo producto automotriz';
+      insertModal.showModal();
+    });
+
+    closeInsert.addEventListener('click', () => insertModal.close());
+    cancelInsert.addEventListener('click', () => insertModal.close());
+
+    insertForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      try {
+        const values = {};
+
+        [...insertFields.querySelectorAll('input')].forEach(input => {
+          if (!input.disabled) {
+            values[input.name] = input.value;
+          }
+        });
+
+        const response = await fetch(`/api/table/${currentSchema}/${currentTable}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ values })
+        });
+
+        const result = await response.json();
+
+        if (result.inserted) {
+          insertModal.close();
+          showToast('Producto registrado');
+          await loadSelectedTable();
+          insertForm.reset();
+        } else {
+          showToast(result.error || 'No se pudo insertar', false);
+        }
+      } catch (error) {
+        showToast('Error al insertar el producto', false);
+      }
+    });
+
+    async function initPanel() {
+      try {
+        const ok = await fetchTables();
+        if (!ok) return;
+        await loadSelectedTable();
+      } catch (error) {
+        hint.textContent = 'No se pudo iniciar el panel.';
+        showToast('Error al iniciar el panel', false);
+      }
+    }
+
+    initPanel();
+  </script>
+</body>
+</html>

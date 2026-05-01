@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>TrackCore – Kardex de Inventario</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="appbar">
+    <div class="brand">
+      <a href="index.html" class="icon-btn" title="Volver al menú" aria-label="Volver al menú">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M15.7 5.3a1 1 0 0 1 0 1.4L11.4 11l4.3 4.3a1 1 0 1 1-1.4 1.4l-5-5a1 1 0 0 1 0-1.4l5-5a1 1 0 0 1 1.4 0z" />
+        </svg>
+      </a>
+      <strong>Kardex de Inventario</strong>
+    </div>
+
+    <div class="actions">
+      <button id="refreshBtn" class="btn ghost" title="Actualizar pantalla">↻</button>
+    </div>
+  </header>
+
+  <main class="container kardex-container">
+    <section class="card kardex-filters">
+      <p class="kardex-kicker">Módulo de movimientos</p>
+      <h1 class="kardex-title">Historial de entradas y salidas</h1>
+      <p class="kardex-subtitle">
+        Consulta los movimientos de productos automotrices, revisa entradas, salidas y el stock
+        resultante dentro del rango de fechas seleccionado.
+      </p>
+
+      <div class="row">
+        <div class="field">
+          <label for="kardexProduct">Producto</label>
+          <div class="select-wrap">
+            <select id="kardexProduct">
+              <option value="">Selecciona un producto…</option>
+              <option value="ACE-001">ACE-001 · Aceite 15W40 Castrol</option>
+              <option value="BUJ-002">BUJ-002 · Bujía NGK BKR6E</option>
+              <option value="FIL-003">FIL-003 · Filtro de aire Toyota</option>
+              <option value="BAT-004">BAT-004 · Batería Bosch 12V</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="kardexFrom">Desde</label>
+          <input type="date" id="kardexFrom" />
+        </div>
+
+        <div class="field">
+          <label for="kardexTo">Hasta</label>
+          <input type="date" id="kardexTo" />
+        </div>
+
+        <div class="field">
+          <label for="kardexType">Tipo de movimiento</label>
+          <div class="select-wrap">
+            <select id="kardexType">
+              <option value="">Todos</option>
+              <option value="entrada">Entradas</option>
+              <option value="salida">Salidas</option>
+              <option value="ajuste">Ajustes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <button id="kardexFilterBtn" class="btn primary">Aplicar filtros</button>
+      </div>
+    </section>
+
+    <section class="card kardex-table-card">
+      <header class="kardex-table-header">
+        <div>
+          <h2 id="kardexProductTitle">Movimientos del producto</h2>
+          <p class="muted" id="kardexRangeInfo">
+            Selecciona un producto para consultar su historial de movimientos.
+          </p>
+        </div>
+        <button id="kardexExportBtn" class="btn ghost">Exportar CSV</button>
+      </header>
+
+      <div class="table-wrap">
+        <table class="grid kardex-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Documento</th>
+              <th>Tipo</th>
+              <th>Detalle</th>
+              <th class="num">Entrada</th>
+              <th class="num">Salida</th>
+              <th class="num">Existencia</th>
+            </tr>
+          </thead>
+          <tbody id="kardexBody">
+            <tr>
+              <td>2026-03-05</td>
+              <td>OC-1042</td>
+              <td><span class="tag tag-in">Entrada</span></td>
+              <td>Compra de aceite a proveedor Castrol Nicaragua</td>
+              <td class="num">+40</td>
+              <td class="num">–</td>
+              <td class="num">120</td>
+            </tr>
+            <tr>
+              <td>2026-03-08</td>
+              <td>FV-2310</td>
+              <td><span class="tag tag-out">Salida</span></td>
+              <td>Venta de bujías y aceite a Taller Los Motores</td>
+              <td class="num">–</td>
+              <td class="num">–12</td>
+              <td class="num">108</td>
+            </tr>
+            <tr>
+              <td>2026-03-10</td>
+              <td>AJ-018</td>
+              <td><span class="tag tag-adj">Ajuste</span></td>
+              <td>Ajuste por conteo físico en almacén</td>
+              <td class="num">+3</td>
+              <td class="num">–</td>
+              <td class="num">111</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="kardex-summary">
+        <div class="kardex-chip">
+          <span>Stock inicial</span>
+          <strong id="kardexInicial">80</strong>
+        </div>
+        <div class="kardex-chip">
+          <span>Total entradas</span>
+          <strong id="kardexEntradas">+43</strong>
+        </div>
+        <div class="kardex-chip">
+          <span>Total salidas</span>
+          <strong id="kardexSalidas">–12</strong>
+        </div>
+        <div class="kardex-chip kardex-chip-strong">
+          <span>Stock final</span>
+          <strong id="kardexFinal">111</strong>
+        </div>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    const refreshBtn = document.getElementById('refreshBtn');
+    const filterBtn = document.getElementById('kardexFilterBtn');
+    const exportBtn = document.getElementById('kardexExportBtn');
+    const productSel = document.getElementById('kardexProduct');
+    const fromInput = document.getElementById('kardexFrom');
+    const toInput = document.getElementById('kardexTo');
+    const typeSel = document.getElementById('kardexType');
+    const rangeInfo = document.getElementById('kardexRangeInfo');
+    const productTitle = document.getElementById('kardexProductTitle');
+
+    function formatMovementType(value) {
+      if (value === 'entrada') return 'entradas';
+      if (value === 'salida') return 'salidas';
+      if (value === 'ajuste') return 'ajustes';
+      return 'todos los movimientos';
+    }
+
+    function getProductLabel() {
+      return productSel.options[productSel.selectedIndex]?.text || 'Producto seleccionado';
+    }
+
+    function applyFilters() {
+      const productCode = productSel.value;
+      const productLabel = getProductLabel();
+      const fromDate = fromInput.value || 'sin fecha inicial';
+      const toDate = toInput.value || 'sin fecha final';
+      const movementType = formatMovementType(typeSel.value);
+
+      if (!productCode) {
+        productTitle.textContent = 'Movimientos del producto';
+        rangeInfo.textContent = 'Debes seleccionar un producto para consultar su historial.';
+        return;
+      }
+
+      productTitle.textContent = `Movimientos · ${productLabel}`;
+      rangeInfo.textContent = `Mostrando ${movementType} entre ${fromDate} y ${toDate}.`;
+    }
+
+    function loadSearchFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const search = (params.get('search') || '').trim().toLowerCase();
+
+      if (!search) return;
+
+      const options = [...productSel.options];
+      const match = options.find(option =>
+        option.value && option.text.toLowerCase().includes(search)
+      );
+
+      if (match) {
+        productSel.value = match.value;
+        applyFilters();
+      } else {
+        rangeInfo.textContent = `Búsqueda recibida: "${search}". No se encontró coincidencia exacta en la lista de productos demo.`;
+      }
+    }
+
+    filterBtn.addEventListener('click', applyFilters);
+
+    exportBtn.addEventListener('click', () => {
+      alert('Aquí se conectará la exportación real del Kardex a CSV.');
+    });
+
+    refreshBtn.addEventListener('click', () => {
+      location.reload();
+    });
+
+    loadSearchFromUrl();
+  </script>
+</body>
+</html>

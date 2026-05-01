@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>TrackCore – Reportes</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="appbar">
+    <div class="brand">
+      <a href="index.html" class="icon-btn" title="Volver al menú" aria-label="Volver al menú">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M15.7 5.3a1 1 0 0 1 0 1.4L11.4 11l4.3 4.3a1 1 0 1 1-1.4 1.4l-5-5a1 1 0 0 1 0-1.4l5-5a1 1 0 0 1 1.4 0z" />
+        </svg>
+      </a>
+      <strong>Reportes</strong>
+    </div>
+
+    <div class="actions">
+      <button id="refreshBtn" class="btn ghost" title="Actualizar pantalla">↻</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="card reports-header">
+      <h1>Reportes de inventario automotriz</h1>
+      <p class="muted">
+        Consulta indicadores clave del negocio, revisa el comportamiento del inventario
+        y analiza productos automotrices con bajo stock, movimientos y resúmenes generales.
+      </p>
+    </section>
+
+    <section class="card reports-filters">
+      <h2>Filtros</h2>
+
+      <div class="reports-filters-row">
+        <div class="field">
+          <label for="reportType">Tipo de reporte</label>
+          <div class="select-wrap">
+            <select id="reportType">
+              <option value="stock" selected>Stock general</option>
+              <option value="low-stock">Productos con stock bajo</option>
+              <option value="moves">Movimientos de inventario</option>
+              <option value="categories">Productos por categoría</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="fromDate">Rango de fechas</label>
+          <div class="reports-date-row">
+            <input type="date" id="fromDate" />
+            <span class="reports-date-sep">a</span>
+            <input type="date" id="toDate" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Vista rápida</label>
+          <div class="quick-filters">
+            <button type="button" class="chip chip-active" data-quick="hoy">Hoy</button>
+            <button type="button" class="chip" data-quick="semana">Esta semana</button>
+            <button type="button" class="chip" data-quick="mes">Este mes</button>
+            <button type="button" class="chip" data-quick="anio">Este año</button>
+          </div>
+        </div>
+
+        <div class="field reports-actions">
+          <button id="generateBtn" class="btn primary">Generar reporte</button>
+          <button id="exportPdfBtn" class="btn ghost">Exportar PDF</button>
+          <button id="exportExcelBtn" class="btn ghost">Exportar Excel</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card reports-stats">
+      <h2>Resumen rápido</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Productos registrados</span>
+          <span class="stat-value" id="statProducts">128</span>
+          <span class="stat-helper muted">Total de productos automotrices cargados</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Unidades en inventario</span>
+          <span class="stat-value" id="statUnits">2,450</span>
+          <span class="stat-helper muted">Existencia total estimada</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Productos con stock bajo</span>
+          <span class="stat-value" id="statLowStock">14</span>
+          <span class="stat-helper muted">Productos que requieren revisión</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card reports-main">
+      <div class="reports-main-grid">
+        <div class="reports-chart">
+          <h2 id="chartTitle">Gráfico del reporte</h2>
+          <div class="chart-placeholder" id="chartPlaceholder">
+            <span class="muted">
+              Aquí se mostrará el gráfico del reporte seleccionado cuando conectes esta
+              pantalla con datos reales del backend.
+            </span>
+          </div>
+        </div>
+
+        <div class="reports-table">
+          <h2 id="detailTitle">Detalle</h2>
+          <div class="table-wrap">
+            <table class="grid">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Producto</th>
+                  <th>Categoría</th>
+                  <th>Estado</th>
+                  <th>Referencia</th>
+                </tr>
+              </thead>
+              <tbody id="reportBody">
+                <tr>
+                  <td>2026-03-10</td>
+                  <td>Aceite 15W40 Castrol</td>
+                  <td>Lubricantes</td>
+                  <td>Stock estable</td>
+                  <td>REP-001</td>
+                </tr>
+                <tr>
+                  <td>2026-03-12</td>
+                  <td>Bujía NGK BKR6E</td>
+                  <td>Encendido</td>
+                  <td>Stock bajo</td>
+                  <td>REP-002</td>
+                </tr>
+                <tr>
+                  <td>2026-03-15</td>
+                  <td>Filtro de aire Toyota</td>
+                  <td>Filtros</td>
+                  <td>Movimiento reciente</td>
+                  <td>REP-003</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const quickChips = document.querySelectorAll('.quick-filters .chip');
+    const reportType = document.getElementById('reportType');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+    const generateBtn = document.getElementById('generateBtn');
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    const exportExcelBtn = document.getElementById('exportExcelBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    const chartTitle = document.getElementById('chartTitle');
+    const detailTitle = document.getElementById('detailTitle');
+    const chartPlaceholder = document.getElementById('chartPlaceholder');
+    const reportBody = document.getElementById('reportBody');
+
+    const statProducts = document.getElementById('statProducts');
+    const statUnits = document.getElementById('statUnits');
+    const statLowStock = document.getElementById('statLowStock');
+
+    const reportLabels = {
+      stock: 'Stock general',
+      'low-stock': 'Productos con stock bajo',
+      moves: 'Movimientos de inventario',
+      categories: 'Productos por categoría'
+    };
+
+    function setActiveChip(selectedChip) {
+      quickChips.forEach(chip => chip.classList.remove('chip-active'));
+      selectedChip.classList.add('chip-active');
+    }
+
+    function applyQuickRange(type) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      const todayText = `${year}-${month}-${day}`;
+
+      if (type === 'hoy') {
+        fromDate.value = todayText;
+        toDate.value = todayText;
+        return;
+      }
+
+      if (type === 'semana') {
+        const first = new Date(today);
+        first.setDate(today.getDate() - 6);
+        const fYear = first.getFullYear();
+        const fMonth = String(first.getMonth() + 1).padStart(2, '0');
+        const fDay = String(first.getDate()).padStart(2, '0');
+        fromDate.value = `${fYear}-${fMonth}-${fDay}`;
+        toDate.value = todayText;
+        return;
+      }
+
+      if (type === 'mes') {
+        fromDate.value = `${year}-${month}-01`;
+        toDate.value = todayText;
+        return;
+      }
+
+      if (type === 'anio') {
+        fromDate.value = `${year}-01-01`;
+        toDate.value = todayText;
+      }
+    }
+
+    function renderDemoReport() {
+      const type = reportType.value;
+      const label = reportLabels[type] || 'Reporte';
+
+      chartTitle.textContent = `Gráfico · ${label}`;
+      detailTitle.textContent = `Detalle · ${label}`;
+
+      chartPlaceholder.innerHTML = `
+        <span class="muted">
+          Reporte seleccionado: <strong>${label}</strong><br>
+          Rango aplicado: <strong>${fromDate.value || 'sin fecha inicial'}</strong> a
+          <strong>${toDate.value || 'sin fecha final'}</strong>.
+        </span>
+      `;
+
+      if (type === 'stock') {
+        statProducts.textContent = '128';
+        statUnits.textContent = '2,450';
+        statLowStock.textContent = '14';
+        reportBody.innerHTML = `
+          <tr>
+            <td>2026-03-10</td>
+            <td>Aceite 15W40 Castrol</td>
+            <td>Lubricantes</td>
+            <td>Stock estable</td>
+            <td>STK-001</td>
+          </tr>
+          <tr>
+            <td>2026-03-11</td>
+            <td>Batería Bosch 12V</td>
+            <td>Baterías</td>
+            <td>Stock alto</td>
+            <td>STK-002</td>
+          </tr>
+          <tr>
+            <td>2026-03-12</td>
+            <td>Filtro de aceite Nissan</td>
+            <td>Filtros</td>
+            <td>Stock medio</td>
+            <td>STK-003</td>
+          </tr>
+        `;
+      }
+
+      if (type === 'low-stock') {
+        statProducts.textContent = '128';
+        statUnits.textContent = '2,450';
+        statLowStock.textContent = '14';
+        reportBody.innerHTML = `
+          <tr>
+            <td>2026-03-12</td>
+            <td>Bujía NGK BKR6E</td>
+            <td>Encendido</td>
+            <td>Stock bajo</td>
+            <td>LOW-001</td>
+          </tr>
+          <tr>
+            <td>2026-03-13</td>
+            <td>Filtro de aire Toyota</td>
+            <td>Filtros</td>
+            <td>Stock bajo</td>
+            <td>LOW-002</td>
+          </tr>
+          <tr>
+            <td>2026-03-15</td>
+            <td>Relay universal 12V</td>
+            <td>Eléctrico</td>
+            <td>Agotado</td>
+            <td>LOW-003</td>
+          </tr>
+        `;
+      }
+
+      if (type === 'moves') {
+        statProducts.textContent = '128';
+        statUnits.textContent = '2,450';
+        statLowStock.textContent = '14';
+        reportBody.innerHTML = `
+          <tr>
+            <td>2026-03-08</td>
+            <td>Aceite 15W40 Castrol</td>
+            <td>Lubricantes</td>
+            <td>Entrada</td>
+            <td>MOV-001</td>
+          </tr>
+          <tr>
+            <td>2026-03-10</td>
+            <td>Bujía NGK BKR6E</td>
+            <td>Encendido</td>
+            <td>Salida</td>
+            <td>MOV-002</td>
+          </tr>
+          <tr>
+            <td>2026-03-14</td>
+            <td>Batería Bosch 12V</td>
+            <td>Baterías</td>
+            <td>Ajuste</td>
+            <td>MOV-003</td>
+          </tr>
+        `;
+      }
+
+      if (type === 'categories') {
+        statProducts.textContent = '128';
+        statUnits.textContent = '2,450';
+        statLowStock.textContent = '14';
+        reportBody.innerHTML = `
+          <tr>
+            <td>2026-03-01</td>
+            <td>Lubricantes</td>
+            <td>Categoría</td>
+            <td>42 productos</td>
+            <td>CAT-001</td>
+          </tr>
+          <tr>
+            <td>2026-03-01</td>
+            <td>Filtros</td>
+            <td>Categoría</td>
+            <td>31 productos</td>
+            <td>CAT-002</td>
+          </tr>
+          <tr>
+            <td>2026-03-01</td>
+            <td>Encendido</td>
+            <td>Categoría</td>
+            <td>18 productos</td>
+            <td>CAT-003</td>
+          </tr>
+        `;
+      }
+    }
+
+    function loadSearchFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const search = (params.get('search') || '').trim().toLowerCase();
+
+      if (!search) return;
+
+      if (search.includes('agotad')) {
+        reportType.value = 'low-stock';
+      } else if (search.includes('mov')) {
+        reportType.value = 'moves';
+      } else if (search.includes('categoria') || search.includes('categor')) {
+        reportType.value = 'categories';
+      } else {
+        reportType.value = 'stock';
+      }
+    }
+
+    quickChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        setActiveChip(chip);
+        applyQuickRange(chip.dataset.quick);
+      });
+    });
+
+    generateBtn.addEventListener('click', () => {
+      renderDemoReport();
+    });
+
+    exportPdfBtn.addEventListener('click', () => {
+      alert('Aquí se conectará la exportación real del reporte a PDF.');
+    });
+
+    exportExcelBtn.addEventListener('click', () => {
+      alert('Aquí se conectará la exportación real del reporte a Excel.');
+    });
+
+    refreshBtn.addEventListener('click', () => {
+      location.reload();
+    });
+
+    loadSearchFromUrl();
+    applyQuickRange('hoy');
+    renderDemoReport();
+  </script>
+</body>
+</html>
