@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <title>TrackCore – Reportes</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
-<body>
 
+<body>
   <header class="appbar">
     <div class="brand">
       <a href="index.html" class="icon-btn" title="Volver al menú" aria-label="Volver al menú">
@@ -28,8 +28,8 @@
     <section class="card reports-header">
       <h1>Reportes de inventario automotriz</h1>
       <p class="muted">
-        Consulta indicadores clave del negocio, revisa el comportamiento del inventario
-        y analiza productos automotrices con bajo stock, movimientos y resúmenes generales.
+        Consulta movimientos reales del Kardex: entradas, salidas, daños, garantías,
+        devoluciones, pérdidas, ajustes y el impacto económico de cada evento registrado.
       </p>
     </section>
 
@@ -41,10 +41,14 @@
           <label for="reportType">Tipo de reporte</label>
           <div class="select-wrap">
             <select id="reportType">
-              <option value="stock" selected>Stock general</option>
-              <option value="low-stock">Productos con stock bajo</option>
-              <option value="moves">Movimientos de inventario</option>
-              <option value="categories">Productos por categoría</option>
+              <option value="general" selected>Resumen general</option>
+              <option value="entradas">Entradas de inventario</option>
+              <option value="salidas">Salidas de inventario</option>
+              <option value="incidencias">Incidencias</option>
+              <option value="danios">Productos dañados</option>
+              <option value="garantias">Garantías</option>
+              <option value="devoluciones">Devoluciones</option>
+              <option value="perdidas">Pérdidas o robos</option>
             </select>
           </div>
         </div>
@@ -59,42 +63,72 @@
         </div>
 
         <div class="field">
+          <label for="reportSearch">Buscar en reporte</label>
+          <input
+            type="text"
+            id="reportSearch"
+            placeholder="Código de barras, producto, documento, responsable..."
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="field">
           <label>Vista rápida</label>
           <div class="quick-filters">
             <button type="button" class="chip chip-active" data-quick="hoy">Hoy</button>
             <button type="button" class="chip" data-quick="semana">Esta semana</button>
             <button type="button" class="chip" data-quick="mes">Este mes</button>
             <button type="button" class="chip" data-quick="anio">Este año</button>
+            <button type="button" class="chip" data-quick="todo">Todo</button>
           </div>
         </div>
 
         <div class="field reports-actions">
           <button id="generateBtn" class="btn primary">Generar reporte</button>
-          <button id="exportPdfBtn" class="btn ghost">Exportar PDF</button>
-          <button id="exportExcelBtn" class="btn ghost">Exportar Excel</button>
+          <button id="exportCsvBtn" class="btn ghost">Exportar CSV</button>
+          <button id="printBtn" class="btn ghost">Imprimir</button>
         </div>
       </div>
     </section>
 
     <section class="card reports-stats">
       <h2>Resumen rápido</h2>
+
       <div class="stats-grid">
         <div class="stat-card">
-          <span class="stat-label">Productos registrados</span>
-          <span class="stat-value" id="statProducts">128</span>
-          <span class="stat-helper muted">Total de productos automotrices cargados</span>
+          <span class="stat-label">Movimientos registrados</span>
+          <span class="stat-value" id="statMovements">0</span>
+          <span class="stat-helper muted">Total de movimientos filtrados</span>
         </div>
 
         <div class="stat-card">
-          <span class="stat-label">Unidades en inventario</span>
-          <span class="stat-value" id="statUnits">2,450</span>
-          <span class="stat-helper muted">Existencia total estimada</span>
+          <span class="stat-label">Entradas</span>
+          <span class="stat-value" id="statInputs">0</span>
+          <span class="stat-helper muted">Unidades agregadas al inventario</span>
         </div>
 
         <div class="stat-card">
-          <span class="stat-label">Productos con stock bajo</span>
-          <span class="stat-value" id="statLowStock">14</span>
-          <span class="stat-helper muted">Productos que requieren revisión</span>
+          <span class="stat-label">Salidas</span>
+          <span class="stat-value" id="statOutputs">0</span>
+          <span class="stat-helper muted">Unidades descontadas del inventario</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Incidencias</span>
+          <span class="stat-value" id="statIncidents">0</span>
+          <span class="stat-helper muted">Daños, garantías, pérdidas o devoluciones</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Impacto entradas</span>
+          <span class="stat-value" id="statInputCost">C$ 0.00</span>
+          <span class="stat-helper muted">Valor monetario positivo</span>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Impacto salidas</span>
+          <span class="stat-value" id="statOutputCost">C$ 0.00</span>
+          <span class="stat-helper muted">Valor monetario descontado</span>
         </div>
       </div>
     </section>
@@ -102,49 +136,42 @@
     <section class="card reports-main">
       <div class="reports-main-grid">
         <div class="reports-chart">
-          <h2 id="chartTitle">Gráfico del reporte</h2>
+          <h2 id="chartTitle">Resumen del reporte</h2>
+
           <div class="chart-placeholder" id="chartPlaceholder">
             <span class="muted">
-              Aquí se mostrará el gráfico del reporte seleccionado cuando conectes esta
-              pantalla con datos reales del backend.
+              Cargando movimientos del Kardex...
             </span>
           </div>
         </div>
 
         <div class="reports-table">
-          <h2 id="detailTitle">Detalle</h2>
+          <h2 id="detailTitle">Detalle de movimientos</h2>
+
           <div class="table-wrap">
             <table class="grid">
               <thead>
                 <tr>
                   <th>Fecha</th>
                   <th>Producto</th>
-                  <th>Categoría</th>
-                  <th>Estado</th>
-                  <th>Referencia</th>
+                  <th>Cód. barras</th>
+                  <th>Tipo</th>
+                  <th class="num">Cantidad</th>
+                  <th class="num">Impacto</th>
+                  <th class="num">Costo impacto</th>
+                  <th>Documento</th>
+                  <th>Responsable</th>
                 </tr>
               </thead>
+
               <tbody id="reportBody">
                 <tr>
-                  <td>2026-03-10</td>
-                  <td>Aceite 15W40 Castrol</td>
-                  <td>Lubricantes</td>
-                  <td>Stock estable</td>
-                  <td>REP-001</td>
-                </tr>
-                <tr>
-                  <td>2026-03-12</td>
-                  <td>Bujía NGK BKR6E</td>
-                  <td>Encendido</td>
-                  <td>Stock bajo</td>
-                  <td>REP-002</td>
-                </tr>
-                <tr>
-                  <td>2026-03-15</td>
-                  <td>Filtro de aire Toyota</td>
-                  <td>Filtros</td>
-                  <td>Movimiento reciente</td>
-                  <td>REP-003</td>
+                  <td colspan="9">
+                    <div class="empty-state">
+                      <strong>Cargando reporte...</strong>
+                      <span class="muted">Espera mientras se consultan los movimientos.</span>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -160,9 +187,11 @@
     const reportType = document.getElementById('reportType');
     const fromDate = document.getElementById('fromDate');
     const toDate = document.getElementById('toDate');
+    const reportSearch = document.getElementById('reportSearch');
+
     const generateBtn = document.getElementById('generateBtn');
-    const exportPdfBtn = document.getElementById('exportPdfBtn');
-    const exportExcelBtn = document.getElementById('exportExcelBtn');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    const printBtn = document.getElementById('printBtn');
     const refreshBtn = document.getElementById('refreshBtn');
 
     const chartTitle = document.getElementById('chartTitle');
@@ -170,28 +199,118 @@
     const chartPlaceholder = document.getElementById('chartPlaceholder');
     const reportBody = document.getElementById('reportBody');
 
-    const statProducts = document.getElementById('statProducts');
-    const statUnits = document.getElementById('statUnits');
-    const statLowStock = document.getElementById('statLowStock');
+    const statMovements = document.getElementById('statMovements');
+    const statInputs = document.getElementById('statInputs');
+    const statOutputs = document.getElementById('statOutputs');
+    const statIncidents = document.getElementById('statIncidents');
+    const statInputCost = document.getElementById('statInputCost');
+    const statOutputCost = document.getElementById('statOutputCost');
+
+    let allMovements = [];
+
+    const movementLabels = {
+      entrada_compra: 'Entrada por compra',
+      entrada_devolucion_cliente: 'Devolución de cliente',
+      entrada_ajuste: 'Ajuste positivo',
+      salida_venta: 'Salida por venta',
+      salida_devolucion_proveedor: 'Devolución a proveedor',
+      salida_danio: 'Producto dañado',
+      salida_vencimiento: 'Producto vencido',
+      salida_perdida: 'Pérdida o robo',
+      salida_garantia: 'Salida por garantía',
+      salida_ajuste: 'Ajuste negativo',
+      transferencia: 'Transferencia',
+      cuarentena: 'Cuarentena / revisión'
+    };
 
     const reportLabels = {
-      stock: 'Stock general',
-      'low-stock': 'Productos con stock bajo',
-      moves: 'Movimientos de inventario',
-      categories: 'Productos por categoría'
+      general: 'Resumen general',
+      entradas: 'Entradas de inventario',
+      salidas: 'Salidas de inventario',
+      incidencias: 'Incidencias',
+      danios: 'Productos dañados',
+      garantias: 'Garantías',
+      devoluciones: 'Devoluciones',
+      perdidas: 'Pérdidas o robos'
     };
+
+    const incidentTypes = new Set([
+      'entrada_devolucion_cliente',
+      'salida_devolucion_proveedor',
+      'salida_danio',
+      'salida_vencimiento',
+      'salida_perdida',
+      'salida_garantia',
+      'cuarentena'
+    ]);
+
+    function normalizeText(value) {
+      return (value ?? '')
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function safeNumber(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : 0;
+    }
+
+    function formatMoney(value) {
+      const number = Number(value) || 0;
+
+      return 'C$ ' + number.toLocaleString('es-NI', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function formatDate(value) {
+      if (!value) return '';
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return String(value).slice(0, 10);
+      }
+
+      return date.toISOString().slice(0, 10);
+    }
+
+    function getMovementLabel(type) {
+      return movementLabels[type] || type || 'Movimiento';
+    }
+
+    function getMovementClass(type) {
+      if (type.startsWith('entrada')) return 'movement-impact-positive';
+      if (type.startsWith('salida')) return 'movement-impact-negative';
+      return 'movement-impact-neutral';
+    }
 
     function setActiveChip(selectedChip) {
       quickChips.forEach(chip => chip.classList.remove('chip-active'));
       selectedChip.classList.add('chip-active');
     }
 
+    function dateToInputValue(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+
+      return `${year}-${month}-${day}`;
+    }
+
     function applyQuickRange(type) {
       const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
-      const todayText = `${year}-${month}-${day}`;
+      const todayText = dateToInputValue(today);
+
+      if (type === 'todo') {
+        fromDate.value = '';
+        toDate.value = '';
+        return;
+      }
 
       if (type === 'hoy') {
         fromDate.value = todayText;
@@ -202,172 +321,365 @@
       if (type === 'semana') {
         const first = new Date(today);
         first.setDate(today.getDate() - 6);
-        const fYear = first.getFullYear();
-        const fMonth = String(first.getMonth() + 1).padStart(2, '0');
-        const fDay = String(first.getDate()).padStart(2, '0');
-        fromDate.value = `${fYear}-${fMonth}-${fDay}`;
+
+        fromDate.value = dateToInputValue(first);
         toDate.value = todayText;
         return;
       }
 
       if (type === 'mes') {
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+
         fromDate.value = `${year}-${month}-01`;
         toDate.value = todayText;
         return;
       }
 
       if (type === 'anio') {
+        const year = today.getFullYear();
+
         fromDate.value = `${year}-01-01`;
         toDate.value = todayText;
       }
     }
 
-    function renderDemoReport() {
-      const type = reportType.value;
-      const label = reportLabels[type] || 'Reporte';
+    async function loadMovements() {
+      const response = await fetch('/api/kardex/movimientos?top=500');
+      const data = await response.json();
 
-      chartTitle.textContent = `Gráfico · ${label}`;
+      if (!response.ok) {
+        throw new Error(data.error || 'No se pudieron cargar los movimientos del Kardex.');
+      }
+
+      allMovements = Array.isArray(data) ? data : [];
+    }
+
+    function movementMatchesReportType(row) {
+      const type = row.TipoMovimiento || '';
+      const impact = safeNumber(row.Impacto);
+
+      if (reportType.value === 'general') return true;
+      if (reportType.value === 'entradas') return impact > 0;
+      if (reportType.value === 'salidas') return impact < 0;
+      if (reportType.value === 'incidencias') return incidentTypes.has(type);
+      if (reportType.value === 'danios') return type === 'salida_danio' || type === 'salida_vencimiento';
+      if (reportType.value === 'garantias') return type === 'salida_garantia';
+      if (reportType.value === 'devoluciones') {
+        return type === 'entrada_devolucion_cliente' || type === 'salida_devolucion_proveedor';
+      }
+      if (reportType.value === 'perdidas') return type === 'salida_perdida';
+
+      return true;
+    }
+
+    function movementMatchesDate(row) {
+      const movementDate = formatDate(row.FechaMovimiento);
+
+      if (fromDate.value && movementDate < fromDate.value) return false;
+      if (toDate.value && movementDate > toDate.value) return false;
+
+      return true;
+    }
+
+    function movementMatchesSearch(row) {
+      const search = normalizeText(reportSearch.value);
+
+      if (!search) return true;
+
+      const values = [
+        row.IDMovimiento,
+        row.IDProducto,
+        row.ProductoNombre,
+        row.CodigoBarra,
+        row.TipoMovimiento,
+        getMovementLabel(row.TipoMovimiento),
+        row.DocumentoReferencia,
+        row.Bodega,
+        row.Responsable,
+        row.Detalle,
+        row.FechaMovimiento
+      ];
+
+      return values.some(value => normalizeText(value).includes(search));
+    }
+
+    function getFilteredRows() {
+      return allMovements
+        .filter(movementMatchesReportType)
+        .filter(movementMatchesDate)
+        .filter(movementMatchesSearch);
+    }
+
+    function calculateStats(rows) {
+      let totalInputs = 0;
+      let totalOutputs = 0;
+      let incidentCount = 0;
+      let inputCost = 0;
+      let outputCost = 0;
+
+      rows.forEach(row => {
+        const impact = safeNumber(row.Impacto);
+        const quantity = safeNumber(row.Cantidad);
+        const costImpact = safeNumber(row.CostoImpacto);
+
+        if (impact > 0) {
+          totalInputs += quantity;
+          inputCost += costImpact;
+        }
+
+        if (impact < 0) {
+          totalOutputs += quantity;
+          outputCost += costImpact;
+        }
+
+        if (incidentTypes.has(row.TipoMovimiento)) {
+          incidentCount++;
+        }
+      });
+
+      return {
+        totalInputs,
+        totalOutputs,
+        incidentCount,
+        inputCost,
+        outputCost
+      };
+    }
+
+    function updateStats(rows) {
+      const stats = calculateStats(rows);
+
+      statMovements.textContent = rows.length.toString();
+      statInputs.textContent = stats.totalInputs.toString();
+      statOutputs.textContent = stats.totalOutputs.toString();
+      statIncidents.textContent = stats.incidentCount.toString();
+      statInputCost.textContent = formatMoney(stats.inputCost);
+      statOutputCost.textContent = formatMoney(stats.outputCost);
+    }
+
+    function renderRows(rows) {
+      if (!rows.length) {
+        reportBody.innerHTML = `
+          <tr>
+            <td colspan="9">
+              <div class="empty-state">
+                <strong>No se encontraron movimientos.</strong>
+                <span class="muted">
+                  Prueba cambiando el tipo de reporte, rango de fechas o búsqueda.
+                </span>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      reportBody.innerHTML = rows.map(row => {
+        const impact = safeNumber(row.Impacto);
+        const movementClass = getMovementClass(row.TipoMovimiento);
+        const impactText = impact > 0 ? `+${impact}` : impact.toString();
+
+        return `
+          <tr>
+            <td>${formatDate(row.FechaMovimiento)}</td>
+            <td>${row.IDProducto} · ${row.ProductoNombre || 'Producto sin nombre'}</td>
+            <td>${row.CodigoBarra || 'Sin código'}</td>
+            <td>
+              <span class="${movementClass}">
+                ${getMovementLabel(row.TipoMovimiento)}
+              </span>
+            </td>
+            <td class="num">${safeNumber(row.Cantidad)}</td>
+            <td class="num ${movementClass}">${impactText}</td>
+            <td class="num">${formatMoney(row.CostoImpacto)}</td>
+            <td>${row.DocumentoReferencia || 'Sin documento'}</td>
+            <td>${row.Responsable || 'No indicado'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderChartSummary(rows) {
+      const label = reportLabels[reportType.value] || 'Reporte';
+      const stats = calculateStats(rows);
+
+      const byType = {};
+
+      rows.forEach(row => {
+        const type = row.TipoMovimiento || 'sin_tipo';
+
+        if (!byType[type]) {
+          byType[type] = {
+            count: 0,
+            quantity: 0,
+            cost: 0
+          };
+        }
+
+        byType[type].count++;
+        byType[type].quantity += safeNumber(row.Cantidad);
+        byType[type].cost += safeNumber(row.CostoImpacto);
+      });
+
+      const typeLines = Object.entries(byType)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 6)
+        .map(([type, info]) => {
+          return `
+            <div style="display:flex;justify-content:space-between;gap:1rem;margin:0.35rem 0;">
+              <span>${getMovementLabel(type)}</span>
+              <strong>${info.count} mov. · ${info.quantity} und. · ${formatMoney(info.cost)}</strong>
+            </div>
+          `;
+        })
+        .join('');
+
+      chartTitle.textContent = `Resumen · ${label}`;
       detailTitle.textContent = `Detalle · ${label}`;
 
       chartPlaceholder.innerHTML = `
-        <span class="muted">
-          Reporte seleccionado: <strong>${label}</strong><br>
-          Rango aplicado: <strong>${fromDate.value || 'sin fecha inicial'}</strong> a
-          <strong>${toDate.value || 'sin fecha final'}</strong>.
-        </span>
+        <div style="width:100%;max-width:720px;text-align:left;">
+          <p class="muted" style="margin-top:0;">
+            Rango aplicado:
+            <strong>${fromDate.value || 'sin fecha inicial'}</strong>
+            a
+            <strong>${toDate.value || 'sin fecha final'}</strong>.
+          </p>
+
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0.75rem;margin:1rem 0;">
+            <div class="stat-card">
+              <span class="stat-label">Entradas</span>
+              <span class="stat-value">${stats.totalInputs}</span>
+            </div>
+
+            <div class="stat-card">
+              <span class="stat-label">Salidas</span>
+              <span class="stat-value">${stats.totalOutputs}</span>
+            </div>
+
+            <div class="stat-card">
+              <span class="stat-label">Impacto positivo</span>
+              <span class="stat-value">${formatMoney(stats.inputCost)}</span>
+            </div>
+
+            <div class="stat-card">
+              <span class="stat-label">Impacto negativo</span>
+              <span class="stat-value">${formatMoney(stats.outputCost)}</span>
+            </div>
+          </div>
+
+          <h3 style="margin:0.75rem 0 0.5rem;color:var(--primary);font-size:1rem;">
+            Movimientos principales
+          </h3>
+
+          ${typeLines || '<p class="muted">No hay movimientos para resumir.</p>'}
+        </div>
       `;
+    }
 
-      if (type === 'stock') {
-        statProducts.textContent = '128';
-        statUnits.textContent = '2,450';
-        statLowStock.textContent = '14';
-        reportBody.innerHTML = `
-          <tr>
-            <td>2026-03-10</td>
-            <td>Aceite 15W40 Castrol</td>
-            <td>Lubricantes</td>
-            <td>Stock estable</td>
-            <td>STK-001</td>
-          </tr>
-          <tr>
-            <td>2026-03-11</td>
-            <td>Batería Bosch 12V</td>
-            <td>Baterías</td>
-            <td>Stock alto</td>
-            <td>STK-002</td>
-          </tr>
-          <tr>
-            <td>2026-03-12</td>
-            <td>Filtro de aceite Nissan</td>
-            <td>Filtros</td>
-            <td>Stock medio</td>
-            <td>STK-003</td>
-          </tr>
-        `;
-      }
+    function renderReport() {
+      const rows = getFilteredRows();
 
-      if (type === 'low-stock') {
-        statProducts.textContent = '128';
-        statUnits.textContent = '2,450';
-        statLowStock.textContent = '14';
-        reportBody.innerHTML = `
-          <tr>
-            <td>2026-03-12</td>
-            <td>Bujía NGK BKR6E</td>
-            <td>Encendido</td>
-            <td>Stock bajo</td>
-            <td>LOW-001</td>
-          </tr>
-          <tr>
-            <td>2026-03-13</td>
-            <td>Filtro de aire Toyota</td>
-            <td>Filtros</td>
-            <td>Stock bajo</td>
-            <td>LOW-002</td>
-          </tr>
-          <tr>
-            <td>2026-03-15</td>
-            <td>Relay universal 12V</td>
-            <td>Eléctrico</td>
-            <td>Agotado</td>
-            <td>LOW-003</td>
-          </tr>
-        `;
-      }
-
-      if (type === 'moves') {
-        statProducts.textContent = '128';
-        statUnits.textContent = '2,450';
-        statLowStock.textContent = '14';
-        reportBody.innerHTML = `
-          <tr>
-            <td>2026-03-08</td>
-            <td>Aceite 15W40 Castrol</td>
-            <td>Lubricantes</td>
-            <td>Entrada</td>
-            <td>MOV-001</td>
-          </tr>
-          <tr>
-            <td>2026-03-10</td>
-            <td>Bujía NGK BKR6E</td>
-            <td>Encendido</td>
-            <td>Salida</td>
-            <td>MOV-002</td>
-          </tr>
-          <tr>
-            <td>2026-03-14</td>
-            <td>Batería Bosch 12V</td>
-            <td>Baterías</td>
-            <td>Ajuste</td>
-            <td>MOV-003</td>
-          </tr>
-        `;
-      }
-
-      if (type === 'categories') {
-        statProducts.textContent = '128';
-        statUnits.textContent = '2,450';
-        statLowStock.textContent = '14';
-        reportBody.innerHTML = `
-          <tr>
-            <td>2026-03-01</td>
-            <td>Lubricantes</td>
-            <td>Categoría</td>
-            <td>42 productos</td>
-            <td>CAT-001</td>
-          </tr>
-          <tr>
-            <td>2026-03-01</td>
-            <td>Filtros</td>
-            <td>Categoría</td>
-            <td>31 productos</td>
-            <td>CAT-002</td>
-          </tr>
-          <tr>
-            <td>2026-03-01</td>
-            <td>Encendido</td>
-            <td>Categoría</td>
-            <td>18 productos</td>
-            <td>CAT-003</td>
-          </tr>
-        `;
-      }
+      updateStats(rows);
+      renderRows(rows);
+      renderChartSummary(rows);
     }
 
     function loadSearchFromUrl() {
       const params = new URLSearchParams(window.location.search);
-      const search = (params.get('search') || '').trim().toLowerCase();
+      const search = (params.get('search') || '').trim();
 
       if (!search) return;
 
-      if (search.includes('agotad')) {
-        reportType.value = 'low-stock';
-      } else if (search.includes('mov')) {
-        reportType.value = 'moves';
-      } else if (search.includes('categoria') || search.includes('categor')) {
-        reportType.value = 'categories';
-      } else {
-        reportType.value = 'stock';
+      reportSearch.value = search;
+    }
+
+    function exportCsv() {
+      const rows = getFilteredRows();
+
+      if (!rows.length) {
+        alert('No hay datos para exportar.');
+        return;
+      }
+
+      const headers = [
+        'Fecha',
+        'IDProducto',
+        'Producto',
+        'CodigoBarra',
+        'TipoMovimiento',
+        'Cantidad',
+        'StockAnterior',
+        'StockNuevo',
+        'Impacto',
+        'PrecioUnitario',
+        'CostoImpacto',
+        'DocumentoReferencia',
+        'Bodega',
+        'Responsable',
+        'Detalle'
+      ];
+
+      const lines = rows.map(row => [
+        formatDate(row.FechaMovimiento),
+        row.IDProducto,
+        row.ProductoNombre,
+        row.CodigoBarra,
+        getMovementLabel(row.TipoMovimiento),
+        row.Cantidad,
+        row.StockAnterior,
+        row.StockNuevo,
+        row.Impacto,
+        row.PrecioUnitario,
+        row.CostoImpacto,
+        row.DocumentoReferencia,
+        row.Bodega,
+        row.Responsable,
+        row.Detalle
+      ]);
+
+      const csvContent = [headers, ...lines]
+        .map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+      const blob = new Blob([csvContent], {
+        type: 'text/csv;charset=utf-8;'
+      });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = 'reporte_kardex_inventario.csv';
+      link.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    async function initReports() {
+      try {
+        loadSearchFromUrl();
+        applyQuickRange('hoy');
+        await loadMovements();
+        renderReport();
+      } catch (error) {
+        chartPlaceholder.innerHTML = `
+          <span class="muted">
+            No se pudo cargar el reporte: <strong>${error.message}</strong>
+          </span>
+        `;
+
+        reportBody.innerHTML = `
+          <tr>
+            <td colspan="9">
+              <div class="empty-state">
+                <strong>Error al cargar datos.</strong>
+                <span class="muted">${error.message}</span>
+              </div>
+            </td>
+          </tr>
+        `;
       }
     }
 
@@ -375,28 +687,28 @@
       chip.addEventListener('click', () => {
         setActiveChip(chip);
         applyQuickRange(chip.dataset.quick);
+        renderReport();
       });
     });
 
-    generateBtn.addEventListener('click', () => {
-      renderDemoReport();
-    });
+    generateBtn.addEventListener('click', renderReport);
 
-    exportPdfBtn.addEventListener('click', () => {
-      alert('Aquí se conectará la exportación real del reporte a PDF.');
-    });
+    reportType.addEventListener('change', renderReport);
+    reportSearch.addEventListener('input', renderReport);
+    fromDate.addEventListener('change', renderReport);
+    toDate.addEventListener('change', renderReport);
 
-    exportExcelBtn.addEventListener('click', () => {
-      alert('Aquí se conectará la exportación real del reporte a Excel.');
+    exportCsvBtn.addEventListener('click', exportCsv);
+
+    printBtn.addEventListener('click', () => {
+      window.print();
     });
 
     refreshBtn.addEventListener('click', () => {
       location.reload();
     });
 
-    loadSearchFromUrl();
-    applyQuickRange('hoy');
-    renderDemoReport();
+    initReports();
   </script>
 </body>
 </html>

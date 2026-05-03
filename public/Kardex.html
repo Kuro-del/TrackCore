@@ -4,8 +4,286 @@
   <meta charset="utf-8" />
   <title>TrackCore – Kardex de Inventario</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+
+  <style>
+    .kardex-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .kardex-stat {
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #f8fafc;
+    }
+
+    .kardex-stat span {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 800;
+    }
+
+    .kardex-stat strong {
+      display: block;
+      margin-top: 0.25rem;
+      font-size: 1.35rem;
+      color: var(--text);
+    }
+
+    .quick-movement-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .quick-movement-grid .field-wide {
+      grid-column: span 2;
+    }
+
+    .quick-movement-grid .field-full {
+      grid-column: 1 / -1;
+    }
+
+    .barcode-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 0.7rem;
+      align-items: end;
+      margin-top: 1rem;
+    }
+
+    .product-preview {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .product-info-card {
+      padding: 0.85rem 0.95rem;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .product-info-card span {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 800;
+      margin-bottom: 0.25rem;
+    }
+
+    .product-info-card strong {
+      display: block;
+      color: var(--text);
+      font-size: 0.95rem;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .quick-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .movement-impact-preview {
+      margin-top: 1rem;
+      padding: 0.9rem 1rem;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.28);
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .movement-impact-preview strong {
+      color: var(--text);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.32rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .tag-in {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .tag-out {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .tag-adj {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .tag-return {
+      background: #f5ecff;
+      color: #7b4fa5;
+    }
+
+    .tag-damage {
+      background: #fdecef;
+      color: #a84a65;
+    }
+
+    .tag-neutral {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .num {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .movement-impact-positive {
+      color: #166534;
+      font-weight: 800;
+    }
+
+    .movement-impact-negative {
+      color: #991b1b;
+      font-weight: 800;
+    }
+
+    .movement-impact-neutral {
+      color: #374151;
+      font-weight: 800;
+    }
+
+    .empty-state {
+      padding: 1rem;
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: var(--text);
+    }
+
+    .scanner-help {
+      margin-top: 0.75rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    #scannerContainer {
+      width: 100%;
+      max-width: 760px;
+      height: 430px;
+      margin-top: 1rem;
+      background: #000;
+      display: none;
+      overflow: hidden;
+      position: relative;
+      border-radius: 10px;
+    }
+
+    #scannerContainer video,
+    #scannerContainer canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover;
+    }
+
+    .scanner-line {
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      top: 50%;
+      height: 3px;
+      background: #dc2626;
+      z-index: 10;
+      opacity: 0.85;
+    }
+
+    .scanner-result {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      border: 1px solid #bbf7d0;
+      background: #ecfdf5;
+      color: #166534;
+      font-weight: 800;
+    }
+
+    .scanner-error {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #991b1b;
+      font-weight: 800;
+    }
+
+    @media (max-width: 980px) {
+      .kardex-stats,
+      .product-preview {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .quick-movement-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .quick-movement-grid .field-wide {
+        grid-column: span 2;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .kardex-stats,
+      .product-preview,
+      .quick-movement-grid,
+      .barcode-row {
+        grid-template-columns: 1fr;
+      }
+
+      .quick-movement-grid .field-wide,
+      .quick-movement-grid .field-full {
+        grid-column: auto;
+      }
+
+      #scannerContainer {
+        height: 320px;
+      }
+    }
+  </style>
+
+  <link rel="stylesheet" href="style.css?v=9" />
 </head>
+
 <body>
   <header class="appbar">
     <div class="brand">
@@ -25,10 +303,10 @@
   <main class="container kardex-container">
     <section class="card kardex-filters">
       <p class="kardex-kicker">Módulo de movimientos</p>
-      <h1 class="kardex-title">Historial de entradas y salidas</h1>
+      <h1 class="kardex-title">Historial integral de inventario</h1>
       <p class="kardex-subtitle">
-        Consulta los movimientos de productos automotrices, revisa entradas, salidas y el stock
-        resultante dentro del rango de fechas seleccionado.
+        Registra cualquier evento que afecte a un producto: entradas, salidas,
+        devoluciones, daños, pérdidas, garantías, ajustes, transferencias y revisiones.
       </p>
 
       <div class="row">
@@ -36,11 +314,7 @@
           <label for="kardexProduct">Producto</label>
           <div class="select-wrap">
             <select id="kardexProduct">
-              <option value="">Selecciona un producto…</option>
-              <option value="ACE-001">ACE-001 · Aceite 15W40 Castrol</option>
-              <option value="BUJ-002">BUJ-002 · Bujía NGK BKR6E</option>
-              <option value="FIL-003">FIL-003 · Filtro de aire Toyota</option>
-              <option value="BAT-004">BAT-004 · Batería Bosch 12V</option>
+              <option value="">Todos los productos</option>
             </select>
           </div>
         </div>
@@ -60,9 +334,18 @@
           <div class="select-wrap">
             <select id="kardexType">
               <option value="">Todos</option>
-              <option value="entrada">Entradas</option>
-              <option value="salida">Salidas</option>
-              <option value="ajuste">Ajustes</option>
+              <option value="entrada_compra">Entrada por compra</option>
+              <option value="entrada_devolucion_cliente">Entrada por devolución de cliente</option>
+              <option value="entrada_ajuste">Entrada por ajuste positivo</option>
+              <option value="salida_venta">Salida por venta</option>
+              <option value="salida_devolucion_proveedor">Salida por devolución a proveedor</option>
+              <option value="salida_danio">Salida por producto dañado</option>
+              <option value="salida_vencimiento">Salida por vencimiento</option>
+              <option value="salida_perdida">Salida por pérdida o robo</option>
+              <option value="salida_garantia">Salida por garantía</option>
+              <option value="salida_ajuste">Salida por ajuste negativo</option>
+              <option value="transferencia">Transferencia entre bodegas</option>
+              <option value="cuarentena">Producto en revisión / cuarentena</option>
             </select>
           </div>
         </div>
@@ -71,16 +354,194 @@
 
         <button id="kardexFilterBtn" class="btn primary">Aplicar filtros</button>
       </div>
+
+      <div class="kardex-stats">
+        <div class="kardex-stat">
+          <span>Entradas</span>
+          <strong id="statEntradas">0</strong>
+        </div>
+
+        <div class="kardex-stat">
+          <span>Salidas</span>
+          <strong id="statSalidas">0</strong>
+        </div>
+
+        <div class="kardex-stat">
+          <span>Incidencias</span>
+          <strong id="statIncidencias">0</strong>
+        </div>
+
+        <div class="kardex-stat">
+          <span>Stock final filtrado</span>
+          <strong id="statFinal">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Registro rápido por código de barras</h2>
+      <p class="muted">
+        Escanea o escribe el código de barras. El sistema buscará el producto y llenará
+        automáticamente sus datos. Luego solo selecciona el tipo de movimiento, cantidad,
+        responsable, documento y detalle.
+      </p>
+
+      <div class="barcode-row">
+        <div class="field">
+          <label for="quickBarcode">Código de barras</label>
+          <input
+            type="text"
+            id="quickBarcode"
+            placeholder="Escanea o escribe el código de barras"
+            autocomplete="off"
+          />
+        </div>
+
+        <button type="button" id="searchBarcodeBtn" class="btn primary">
+          Buscar producto
+        </button>
+
+        <button type="button" id="scanBarcodeBtn" class="btn btn-light">
+          Escanear
+        </button>
+      </div>
+
+      <div class="product-preview">
+        <div class="product-info-card">
+          <span>ID producto</span>
+          <strong id="productIdInfo">Sin producto</strong>
+        </div>
+
+        <div class="product-info-card">
+          <span>Producto</span>
+          <strong id="productNameInfo">Sin producto seleccionado</strong>
+        </div>
+
+        <div class="product-info-card">
+          <span>Código de barras</span>
+          <strong id="productBarcodeInfo">Sin código</strong>
+        </div>
+
+        <div class="product-info-card">
+          <span>Stock actual</span>
+          <strong id="productStockInfo">0</strong>
+        </div>
+
+        <div class="product-info-card">
+          <span>Proveedor</span>
+          <strong id="productProviderInfo">No detectado</strong>
+        </div>
+
+        <div class="product-info-card">
+          <span>Categoría</span>
+          <strong id="productCategoryInfo">No detectada</strong>
+        </div>
+
+        <div class="product-info-card">
+          <span>Presentación</span>
+          <strong id="productUnitInfo">No detectada</strong>
+        </div>
+
+        <div class="product-info-card">
+          <span>Precio unitario</span>
+          <strong id="productPriceInfo">0.00</strong>
+        </div>
+
+        <div class="product-info-card">
+          <span>Nivel de reorden</span>
+          <strong id="productReorderInfo">0</strong>
+        </div>
+
+        <div class="product-info-card">
+          <span>Estado</span>
+          <strong id="productStatusInfo">No detectado</strong>
+        </div>
+
+        <div class="product-info-card">
+          <span>Tabla origen</span>
+          <strong id="productTableInfo">No cargada</strong>
+        </div>
+
+        <div class="product-info-card">
+          <span>Resultado</span>
+          <strong id="productLookupInfo">Pendiente</strong>
+        </div>
+      </div>
+
+      <form id="quickMovementForm">
+        <div class="quick-movement-grid">
+          <div class="field">
+            <label for="movementDate">Fecha</label>
+            <input type="date" id="movementDate" required />
+          </div>
+
+          <div class="field">
+            <label for="movementType">Tipo de movimiento</label>
+            <div class="select-wrap">
+              <select id="movementType" required>
+                <option value="">Selecciona qué hacer…</option>
+                <option value="entrada_compra">Entrada por compra</option>
+                <option value="entrada_devolucion_cliente">Entrada por devolución de cliente</option>
+                <option value="entrada_ajuste">Entrada por ajuste positivo</option>
+                <option value="salida_venta">Salida por venta</option>
+                <option value="salida_devolucion_proveedor">Salida por devolución a proveedor</option>
+                <option value="salida_danio">Salida por producto dañado</option>
+                <option value="salida_vencimiento">Salida por vencimiento</option>
+                <option value="salida_perdida">Salida por pérdida o robo</option>
+                <option value="salida_garantia">Salida por garantía</option>
+                <option value="salida_ajuste">Salida por ajuste negativo</option>
+                <option value="transferencia">Transferencia entre bodegas</option>
+                <option value="cuarentena">Producto en revisión / cuarentena</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="movementQuantity">Cantidad</label>
+            <input type="number" id="movementQuantity" min="1" step="1" placeholder="Ej: 24" required />
+          </div>
+
+          <div class="field">
+            <label for="movementResponsible">Responsable</label>
+            <input type="text" id="movementResponsible" placeholder="Ej: Bodega / Daniel" required />
+          </div>
+
+          <div class="field field-wide">
+            <label for="movementDocument">Documento / referencia</label>
+            <input type="text" id="movementDocument" placeholder="Ej: OC-1042, FV-2310, DEV-001, DAÑ-001" />
+          </div>
+
+          <div class="field field-wide">
+            <label for="movementWarehouse">Bodega / ubicación</label>
+            <input type="text" id="movementWarehouse" placeholder="Ej: Bodega principal" />
+          </div>
+
+          <div class="field field-full">
+            <label for="movementDetail">Detalle / observación</label>
+            <textarea id="movementDetail" placeholder="Describe brevemente qué ocurrió con el producto" required></textarea>
+          </div>
+        </div>
+
+        <div class="movement-impact-preview" id="movementImpactPreview">
+          Selecciona un producto, un tipo de movimiento y una cantidad para calcular el impacto.
+        </div>
+
+        <div class="quick-actions">
+          <button type="button" class="btn ghost" id="clearQuickFormBtn">Limpiar</button>
+          <button type="submit" class="btn primary">Registrar movimiento</button>
+        </div>
+      </form>
     </section>
 
     <section class="card kardex-table-card">
       <header class="kardex-table-header">
         <div>
-          <h2 id="kardexProductTitle">Movimientos del producto</h2>
+          <h2 id="kardexProductTitle">Movimientos de inventario</h2>
           <p class="muted" id="kardexRangeInfo">
-            Selecciona un producto para consultar su historial de movimientos.
+            Mostrando todos los movimientos registrados en el Kardex.
           </p>
         </div>
+
         <button id="kardexExportBtn" class="btn ghost">Exportar CSV</button>
       </header>
 
@@ -89,136 +550,1236 @@
           <thead>
             <tr>
               <th>Fecha</th>
+              <th>Producto</th>
+              <th>Cód. barras</th>
               <th>Documento</th>
               <th>Tipo</th>
               <th>Detalle</th>
+              <th>Bodega</th>
+              <th>Responsable</th>
               <th class="num">Entrada</th>
               <th class="num">Salida</th>
-              <th class="num">Existencia</th>
+              <th class="num">Stock anterior</th>
+              <th class="num">Stock nuevo</th>
+              <th class="num">Impacto</th>
             </tr>
           </thead>
-          <tbody id="kardexBody">
-            <tr>
-              <td>2026-03-05</td>
-              <td>OC-1042</td>
-              <td><span class="tag tag-in">Entrada</span></td>
-              <td>Compra de aceite a proveedor Castrol Nicaragua</td>
-              <td class="num">+40</td>
-              <td class="num">–</td>
-              <td class="num">120</td>
-            </tr>
-            <tr>
-              <td>2026-03-08</td>
-              <td>FV-2310</td>
-              <td><span class="tag tag-out">Salida</span></td>
-              <td>Venta de bujías y aceite a Taller Los Motores</td>
-              <td class="num">–</td>
-              <td class="num">–12</td>
-              <td class="num">108</td>
-            </tr>
-            <tr>
-              <td>2026-03-10</td>
-              <td>AJ-018</td>
-              <td><span class="tag tag-adj">Ajuste</span></td>
-              <td>Ajuste por conteo físico en almacén</td>
-              <td class="num">+3</td>
-              <td class="num">–</td>
-              <td class="num">111</td>
-            </tr>
-          </tbody>
+
+          <tbody id="kardexBody"></tbody>
         </table>
       </div>
 
       <footer class="kardex-summary">
         <div class="kardex-chip">
-          <span>Stock inicial</span>
-          <strong id="kardexInicial">80</strong>
-        </div>
-        <div class="kardex-chip">
           <span>Total entradas</span>
-          <strong id="kardexEntradas">+43</strong>
+          <strong id="kardexEntradas">+0</strong>
         </div>
+
         <div class="kardex-chip">
           <span>Total salidas</span>
-          <strong id="kardexSalidas">–12</strong>
+          <strong id="kardexSalidas">–0</strong>
         </div>
+
+        <div class="kardex-chip">
+          <span>Incidencias</span>
+          <strong id="kardexIncidencias">0</strong>
+        </div>
+
         <div class="kardex-chip kardex-chip-strong">
-          <span>Stock final</span>
-          <strong id="kardexFinal">111</strong>
+          <span>Último stock</span>
+          <strong id="kardexFinal">0</strong>
         </div>
       </footer>
     </section>
   </main>
 
+  <dialog id="scannerModal" class="modal">
+    <div class="card">
+      <header class="modal-header">
+        <h3>Escanear código de barras</h3>
+        <button type="button" id="closeScanner" class="btn ghost">✕</button>
+      </header>
+
+      <div class="field">
+        <label for="scannerCamera">Cámara disponible</label>
+        <div class="select-wrap">
+          <select id="scannerCamera">
+            <option value="">Presioná “Cargar cámaras”</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button type="button" class="btn btn-light" id="loadScannerCameras">Cargar cámaras</button>
+        <button type="button" class="btn primary" id="startScanner">Escanear código</button>
+        <button type="button" class="btn danger" id="stopScanner" style="display:none;">Detener cámara</button>
+      </div>
+
+      <div id="scannerContainer">
+        <div class="scanner-line"></div>
+      </div>
+
+      <div id="scannerResult" class="scanner-result"></div>
+      <div id="scannerError" class="scanner-error"></div>
+
+      <p class="scanner-help">
+        Abrí DroidCam primero. Luego cargá las cámaras, seleccioná <strong>DroidCam Video</strong>
+        y presioná <strong>Escanear código</strong>. Coloca el código horizontal y evita reflejos.
+      </p>
+
+      <footer class="modal-footer">
+        <button type="button" id="cancelScanner" class="btn ghost">Cancelar</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
   <script>
     const refreshBtn = document.getElementById('refreshBtn');
     const filterBtn = document.getElementById('kardexFilterBtn');
     const exportBtn = document.getElementById('kardexExportBtn');
+
     const productSel = document.getElementById('kardexProduct');
     const fromInput = document.getElementById('kardexFrom');
     const toInput = document.getElementById('kardexTo');
     const typeSel = document.getElementById('kardexType');
+
     const rangeInfo = document.getElementById('kardexRangeInfo');
     const productTitle = document.getElementById('kardexProductTitle');
+    const kardexBody = document.getElementById('kardexBody');
+
+    const statEntradas = document.getElementById('statEntradas');
+    const statSalidas = document.getElementById('statSalidas');
+    const statIncidencias = document.getElementById('statIncidencias');
+    const statFinal = document.getElementById('statFinal');
+
+    const kardexEntradas = document.getElementById('kardexEntradas');
+    const kardexSalidas = document.getElementById('kardexSalidas');
+    const kardexIncidencias = document.getElementById('kardexIncidencias');
+    const kardexFinal = document.getElementById('kardexFinal');
+
+    const quickBarcode = document.getElementById('quickBarcode');
+    const searchBarcodeBtn = document.getElementById('searchBarcodeBtn');
+    const scanBarcodeBtn = document.getElementById('scanBarcodeBtn');
+
+    const productIdInfo = document.getElementById('productIdInfo');
+    const productNameInfo = document.getElementById('productNameInfo');
+    const productBarcodeInfo = document.getElementById('productBarcodeInfo');
+    const productStockInfo = document.getElementById('productStockInfo');
+    const productProviderInfo = document.getElementById('productProviderInfo');
+    const productCategoryInfo = document.getElementById('productCategoryInfo');
+    const productUnitInfo = document.getElementById('productUnitInfo');
+    const productPriceInfo = document.getElementById('productPriceInfo');
+    const productReorderInfo = document.getElementById('productReorderInfo');
+    const productStatusInfo = document.getElementById('productStatusInfo');
+    const productTableInfo = document.getElementById('productTableInfo');
+    const productLookupInfo = document.getElementById('productLookupInfo');
+
+    const quickMovementForm = document.getElementById('quickMovementForm');
+    const movementDate = document.getElementById('movementDate');
+    const movementType = document.getElementById('movementType');
+    const movementQuantity = document.getElementById('movementQuantity');
+    const movementResponsible = document.getElementById('movementResponsible');
+    const movementDocument = document.getElementById('movementDocument');
+    const movementWarehouse = document.getElementById('movementWarehouse');
+    const movementDetail = document.getElementById('movementDetail');
+    const movementImpactPreview = document.getElementById('movementImpactPreview');
+    const clearQuickFormBtn = document.getElementById('clearQuickFormBtn');
+
+    const scannerModal = document.getElementById('scannerModal');
+    const scannerCamera = document.getElementById('scannerCamera');
+    const scannerContainer = document.getElementById('scannerContainer');
+    const scannerResult = document.getElementById('scannerResult');
+    const scannerError = document.getElementById('scannerError');
+    const closeScanner = document.getElementById('closeScanner');
+    const cancelScanner = document.getElementById('cancelScanner');
+    const loadScannerCameras = document.getElementById('loadScannerCameras');
+    const startScanner = document.getElementById('startScanner');
+    const stopScanner = document.getElementById('stopScanner');
+
+    const toast = document.getElementById('toast');
+
+    let productRows = [];
+    let productColumns = [];
+    let currentProductTable = null;
+    let currentKardexTable = null;
+    let selectedProduct = null;
+    let movements = [];
+
+    let scannerActivo = false;
+    let ultimoCodigo = null;
+    let repeticiones = 0;
+
+    const movementTypes = {
+      entrada_compra: { label: 'Entrada por compra', direction: 'in', tag: 'tag-in', incidence: false },
+      entrada_devolucion_cliente: { label: 'Devolución de cliente', direction: 'in', tag: 'tag-return', incidence: true },
+      entrada_ajuste: { label: 'Ajuste positivo', direction: 'in', tag: 'tag-adj', incidence: false },
+      salida_venta: { label: 'Salida por venta', direction: 'out', tag: 'tag-out', incidence: false },
+      salida_devolucion_proveedor: { label: 'Devolución a proveedor', direction: 'out', tag: 'tag-return', incidence: true },
+      salida_danio: { label: 'Producto dañado', direction: 'out', tag: 'tag-damage', incidence: true },
+      salida_vencimiento: { label: 'Producto vencido', direction: 'out', tag: 'tag-damage', incidence: true },
+      salida_perdida: { label: 'Pérdida o robo', direction: 'out', tag: 'tag-damage', incidence: true },
+      salida_garantia: { label: 'Salida por garantía', direction: 'out', tag: 'tag-return', incidence: true },
+      salida_ajuste: { label: 'Ajuste negativo', direction: 'out', tag: 'tag-adj', incidence: false },
+      transferencia: { label: 'Transferencia', direction: 'neutral', tag: 'tag-neutral', incidence: false },
+      cuarentena: { label: 'Cuarentena / revisión', direction: 'neutral', tag: 'tag-damage', incidence: true }
+    };
+
+    function normalizeText(value) {
+      return (value ?? '')
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function normalizeColumnName(value) {
+      return normalizeText(value).replace(/[\s_]/g, '');
+    }
+
+    function showToast(message, ok = true) {
+      toast.textContent = message;
+      toast.className = 'toast ' + (ok ? 'ok' : 'err');
+      toast.style.opacity = 1;
+
+      setTimeout(() => {
+        toast.style.opacity = 0;
+      }, 2400);
+    }
+
+    function showScannerError(message) {
+      scannerError.textContent = message;
+      scannerError.style.display = 'block';
+    }
+
+    function hideScannerMessages() {
+      scannerResult.style.display = 'none';
+      scannerError.style.display = 'none';
+      scannerResult.textContent = '';
+      scannerError.textContent = '';
+    }
+
+    function labelFor(schema, table) {
+      return schema.toLowerCase() === 'dbo' ? table : `${schema}.${table}`;
+    }
+
+    function findColumnByPatterns(patterns) {
+      const normalizedColumns = productColumns.map(column => ({
+        original: column,
+        normalized: normalizeColumnName(column)
+      }));
+
+      for (const pattern of patterns) {
+        const exactMatch = normalizedColumns.find(column =>
+          column.normalized === pattern
+        );
+
+        if (exactMatch) return exactMatch.original;
+      }
+
+      for (const pattern of patterns) {
+        const partialMatch = normalizedColumns.find(column =>
+          column.normalized.includes(pattern)
+        );
+
+        if (partialMatch) return partialMatch.original;
+      }
+
+      return '';
+    }
+
+    function getProductColumns() {
+      return {
+        pk: findColumnByPatterns(['idproducto', 'productoid', 'id']),
+        name: findColumnByPatterns(['nombre', 'nombreproducto', 'descripcionproducto', 'descripcion', 'producto']),
+        barcode: findColumnByPatterns(['codigobarra', 'codigodebarra', 'barcode', 'barras', 'upc', 'ean']),
+        stock: findColumnByPatterns(['unidadesenstock', 'stockactual', 'stock', 'existencia', 'inventario']),
+        provider: findColumnByPatterns(['idproveedor', 'proveedor', 'supplier']),
+        category: findColumnByPatterns(['idcategoria', 'categoria', 'category']),
+        unit: findColumnByPatterns(['cantidadporunidad', 'presentacion', 'unidad', 'medida']),
+        price: findColumnByPatterns(['preciounitario', 'precio', 'price']),
+        reorder: findColumnByPatterns(['niveldereorden', 'reorden', 'stockminimo']),
+        discontinued: findColumnByPatterns(['descontinuado', 'inactivo', 'estado'])
+      };
+    }
+
+    function safeNumber(value) {
+      if (value === null || value === undefined || value === '') return 0;
+
+      const cleaned = value.toString().replace(/[^0-9.-]/g, '');
+      const number = Number(cleaned);
+
+      return Number.isFinite(number) ? number : 0;
+    }
+
+    function formatMoney(value) {
+      const number = Number(value) || 0;
+
+      return number.toLocaleString('es-NI', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function formatDateTime(value) {
+      if (!value) return '';
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return String(value).slice(0, 10);
+      }
+
+      return date.toISOString().slice(0, 10);
+    }
 
     function formatMovementType(value) {
-      if (value === 'entrada') return 'entradas';
-      if (value === 'salida') return 'salidas';
-      if (value === 'ajuste') return 'ajustes';
-      return 'todos los movimientos';
+      if (!value) return 'todos los movimientos';
+      return movementTypes[value]?.label.toLowerCase() || value;
     }
 
-    function getProductLabel() {
-      return productSel.options[productSel.selectedIndex]?.text || 'Producto seleccionado';
+    function getMovementDirection(type) {
+      return movementTypes[type]?.direction || 'neutral';
     }
 
-    function applyFilters() {
-      const productCode = productSel.value;
-      const productLabel = getProductLabel();
-      const fromDate = fromInput.value || 'sin fecha inicial';
-      const toDate = toInput.value || 'sin fecha final';
-      const movementType = formatMovementType(typeSel.value);
+    function getMovementImpact(type, quantity) {
+      const direction = getMovementDirection(type);
+      const qty = Number(quantity) || 0;
 
-      if (!productCode) {
-        productTitle.textContent = 'Movimientos del producto';
-        rangeInfo.textContent = 'Debes seleccionar un producto para consultar su historial.';
+      if (direction === 'in') return qty;
+      if (direction === 'out') return qty * -1;
+
+      return 0;
+    }
+
+    function getMovementTag(type) {
+      const meta = movementTypes[type] || {
+        label: 'Movimiento',
+        tag: 'tag-neutral'
+      };
+
+      return `<span class="tag ${meta.tag}">${meta.label}</span>`;
+    }
+
+    function setTodayDefaults() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+
+      movementDate.value = `${year}-${month}-${day}`;
+    }
+
+    function getProductNameById(productId) {
+      const cols = getProductColumns();
+
+      const product = productRows.find(row =>
+        String(row[cols.pk] ?? '') === String(productId)
+      );
+
+      return product ? product[cols.name] : 'Producto sin nombre';
+    }
+
+    async function fetchTables() {
+      const response = await fetch('/api/tables');
+      const tables = await response.json();
+
+      const productTable = tables.find(item => {
+        const full = normalizeText(`${item.schema_name} ${item.table_name}`);
+        return full.includes('producto') || full.includes('product');
+      });
+
+      const kardexTable = tables.find(item => {
+        const full = normalizeText(`${item.schema_name} ${item.table_name}`);
+        return full.includes('kardexinventario') || full.includes('movimientoinventario') || full.includes('kardex');
+      });
+
+      if (!productTable) {
+        throw new Error('No se encontró una tabla de productos.');
+      }
+
+      if (!kardexTable) {
+        throw new Error('No se encontró la tabla KardexInventario.');
+      }
+
+      currentProductTable = {
+        schema: productTable.schema_name,
+        table: productTable.table_name
+      };
+
+      currentKardexTable = {
+        schema: kardexTable.schema_name,
+        table: kardexTable.table_name
+      };
+
+      productTableInfo.textContent = labelFor(currentProductTable.schema, currentProductTable.table);
+    }
+
+    async function loadProducts() {
+      if (!currentProductTable || !currentKardexTable) {
+        await fetchTables();
+      }
+
+      const response = await fetch(`/api/table/${currentProductTable.schema}/${currentProductTable.table}?top=500`);
+      const rows = await response.json();
+
+      productRows = Array.isArray(rows) ? rows : [];
+      productColumns = productRows.length ? Object.keys(productRows[0]) : [];
+
+      fillProductFilter();
+
+      if (!productRows.length) {
+        productLookupInfo.textContent = 'No hay productos cargados.';
         return;
       }
 
-      productTitle.textContent = `Movimientos · ${productLabel}`;
-      rangeInfo.textContent = `Mostrando ${movementType} entre ${fromDate} y ${toDate}.`;
+      productLookupInfo.textContent = `${productRows.length} productos disponibles.`;
+    }
+
+    async function loadKardexMovements() {
+      if (!currentKardexTable) return;
+
+      const response = await fetch(`/api/table/${currentKardexTable.schema}/${currentKardexTable.table}?top=500`);
+      const rows = await response.json();
+
+      const data = Array.isArray(rows) ? rows : [];
+
+      movements = data.map(row => {
+        const productId = row.IDProducto ?? row.IdProducto ?? row.idProducto ?? '';
+        const productName = getProductNameById(productId);
+
+        return {
+          date: formatDateTime(row.FechaMovimiento),
+          productId,
+          productName,
+          barcode: row.CodigoBarra ?? '',
+          document: row.DocumentoReferencia ?? '',
+          type: row.TipoMovimiento ?? '',
+          detail: row.Detalle ?? '',
+          warehouse: row.Bodega ?? '',
+          responsible: row.Responsable ?? '',
+          quantity: safeNumber(row.Cantidad),
+          price: safeNumber(row.PrecioUnitario),
+          oldStock: safeNumber(row.StockAnterior),
+          newStock: safeNumber(row.StockNuevo),
+          impact: safeNumber(row.Impacto)
+        };
+      });
+    }
+
+    function fillProductFilter() {
+      const cols = getProductColumns();
+
+      productSel.innerHTML = '<option value="">Todos los productos</option>';
+
+      productRows.forEach(row => {
+        const id = row[cols.pk] ?? '';
+        const name = row[cols.name] ?? 'Producto sin nombre';
+        const barcode = row[cols.barcode] ?? '';
+
+        const option = document.createElement('option');
+
+        option.value = id.toString();
+        option.textContent = `${id} · ${name}${barcode ? ' · ' + barcode : ''}`;
+
+        productSel.appendChild(option);
+      });
+    }
+
+    function findProductByBarcode(barcode) {
+      const cols = getProductColumns();
+      const cleanBarcode = barcode.trim();
+
+      if (!cleanBarcode || !cols.barcode) return null;
+
+      return productRows.find(row =>
+        String(row[cols.barcode] ?? '').trim() === cleanBarcode
+      ) || null;
+    }
+
+    function findProductByPk(pkValue) {
+      const cols = getProductColumns();
+
+      if (!cols.pk) return null;
+
+      return productRows.find(row =>
+        String(row[cols.pk] ?? '') === String(pkValue)
+      ) || null;
+    }
+
+    function setSelectedProduct(product) {
+      selectedProduct = product;
+
+      const cols = getProductColumns();
+
+      if (!product) {
+        productIdInfo.textContent = 'Sin producto';
+        productNameInfo.textContent = 'Sin producto seleccionado';
+        productBarcodeInfo.textContent = 'Sin código';
+        productStockInfo.textContent = '0';
+        productProviderInfo.textContent = 'No detectado';
+        productCategoryInfo.textContent = 'No detectada';
+        productUnitInfo.textContent = 'No detectada';
+        productPriceInfo.textContent = '0.00';
+        productReorderInfo.textContent = '0';
+        productStatusInfo.textContent = 'No detectado';
+        productLookupInfo.textContent = 'Producto no seleccionado.';
+        updateImpactPreview();
+        return;
+      }
+
+      const stock = safeNumber(product[cols.stock]);
+      const discontinuedValue = product[cols.discontinued];
+
+      productIdInfo.textContent = product[cols.pk] ?? 'No detectado';
+      productNameInfo.textContent = product[cols.name] ?? 'Sin nombre';
+      productBarcodeInfo.textContent = product[cols.barcode] ?? 'Sin código';
+      productStockInfo.textContent = stock.toString();
+      productProviderInfo.textContent = product[cols.provider] ?? 'No detectado';
+      productCategoryInfo.textContent = product[cols.category] ?? 'No detectada';
+      productUnitInfo.textContent = product[cols.unit] ?? 'No detectada';
+      productPriceInfo.textContent = `C$ ${formatMoney(product[cols.price])}`;
+      productReorderInfo.textContent = product[cols.reorder] ?? '0';
+      productStatusInfo.textContent = String(discontinuedValue) === '1' || discontinuedValue === true
+        ? 'Descontinuado'
+        : 'Activo';
+      productLookupInfo.textContent = 'Producto encontrado.';
+
+      productSel.value = String(product[cols.pk] ?? '');
+
+      updateImpactPreview();
+    }
+
+    function searchProductFromBarcode() {
+      const barcode = quickBarcode.value.trim();
+
+      if (!barcode) {
+        showToast('Escribe o escanea un código de barras.', false);
+        return;
+      }
+
+      const product = findProductByBarcode(barcode);
+
+      if (!product) {
+        setSelectedProduct(null);
+        productLookupInfo.textContent = `No se encontró producto con código ${barcode}.`;
+        showToast('Producto no encontrado', false);
+        return;
+      }
+
+      setSelectedProduct(product);
+      showToast('Producto encontrado');
+    }
+
+    function updateImpactPreview() {
+      if (!selectedProduct) {
+        movementImpactPreview.innerHTML = 'Selecciona o escanea un producto para calcular el impacto.';
+        return;
+      }
+
+      const cols = getProductColumns();
+      const type = movementType.value;
+      const quantity = Number(movementQuantity.value) || 0;
+      const currentStock = safeNumber(selectedProduct[cols.stock]);
+
+      if (!type || quantity <= 0) {
+        movementImpactPreview.innerHTML = `
+          Producto seleccionado: <strong>${selectedProduct[cols.name] ?? 'Sin nombre'}</strong>.
+          Selecciona el tipo de movimiento y la cantidad para calcular el nuevo stock.
+        `;
+        return;
+      }
+
+      const impact = getMovementImpact(type, quantity);
+      const newStock = currentStock + impact;
+      const meta = movementTypes[type];
+
+      let effectText = 'no cambia el stock total';
+
+      if (impact > 0) {
+        effectText = `suma <strong>+${impact}</strong> unidades`;
+      }
+
+      if (impact < 0) {
+        effectText = `resta <strong>${Math.abs(impact)}</strong> unidades`;
+      }
+
+      movementImpactPreview.innerHTML = `
+        Movimiento: <strong>${meta.label}</strong> — este movimiento ${effectText}.<br>
+        Stock actual: <strong>${currentStock}</strong> · Stock resultante: <strong>${newStock}</strong>.
+      `;
+    }
+
+    function getFilteredMovements() {
+      const selectedProductId = productSel.value;
+      const selectedType = typeSel.value;
+      const fromDate = fromInput.value;
+      const toDate = toInput.value;
+
+      return movements.filter(movement => {
+        if (selectedProductId && String(movement.productId) !== String(selectedProductId)) return false;
+        if (selectedType && movement.type !== selectedType) return false;
+        if (fromDate && movement.date < fromDate) return false;
+        if (toDate && movement.date > toDate) return false;
+
+        return true;
+      });
+    }
+
+    function renderKardex() {
+      const filtered = getFilteredMovements()
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      let totalIn = 0;
+      let totalOut = 0;
+      let incidences = 0;
+      let lastStock = 0;
+
+      if (!filtered.length) {
+        kardexBody.innerHTML = `
+          <tr>
+            <td colspan="13">
+              <div class="empty-state">
+                <strong>No hay movimientos para mostrar.</strong>
+                <span class="muted">Prueba cambiando los filtros o registra un nuevo movimiento.</span>
+              </div>
+            </td>
+          </tr>
+        `;
+
+        kardexEntradas.textContent = '+0';
+        kardexSalidas.textContent = '–0';
+        kardexIncidencias.textContent = '0';
+        kardexFinal.textContent = '0';
+
+        statEntradas.textContent = '+0';
+        statSalidas.textContent = '–0';
+        statIncidencias.textContent = '0';
+        statFinal.textContent = '0';
+
+        return;
+      }
+
+      kardexBody.innerHTML = filtered.map(movement => {
+        const direction = getMovementDirection(movement.type);
+        const impact = movement.impact;
+        const costImpact = Math.abs(impact) * (Number(movement.price) || 0);
+
+        if (direction === 'in') totalIn += movement.quantity;
+        if (direction === 'out') totalOut += movement.quantity;
+        if (movementTypes[movement.type]?.incidence) incidences++;
+
+        lastStock = movement.newStock;
+
+        const entrada = direction === 'in'
+          ? `<span class="movement-impact-positive">+${movement.quantity}</span>`
+          : '–';
+
+        const salida = direction === 'out'
+          ? `<span class="movement-impact-negative">–${movement.quantity}</span>`
+          : '–';
+
+        const impactClass = impact > 0
+          ? 'movement-impact-positive'
+          : impact < 0
+            ? 'movement-impact-negative'
+            : 'movement-impact-neutral';
+
+        const impactText = impact > 0
+          ? `+${impact}`
+          : impact < 0
+            ? `${impact}`
+            : '0';
+
+        return `
+          <tr>
+            <td>${movement.date}</td>
+            <td>${movement.productId} · ${movement.productName}</td>
+            <td>${movement.barcode || 'Sin código'}</td>
+            <td>${movement.document || 'Sin documento'}</td>
+            <td>${getMovementTag(movement.type)}</td>
+            <td>${movement.detail || 'Sin detalle'}</td>
+            <td>${movement.warehouse || 'No indicada'}</td>
+            <td>${movement.responsible || 'No indicado'}</td>
+            <td class="num">${entrada}</td>
+            <td class="num">${salida}</td>
+            <td class="num">${movement.oldStock}</td>
+            <td class="num">${movement.newStock}</td>
+            <td class="num ${impactClass}">
+              ${impactText}<br>
+              <small>C$ ${formatMoney(costImpact)}</small>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      kardexEntradas.textContent = `+${totalIn}`;
+      kardexSalidas.textContent = `–${totalOut}`;
+      kardexIncidencias.textContent = incidences.toString();
+      kardexFinal.textContent = lastStock.toString();
+
+      statEntradas.textContent = `+${totalIn}`;
+      statSalidas.textContent = `–${totalOut}`;
+      statIncidencias.textContent = incidences.toString();
+      statFinal.textContent = lastStock.toString();
+    }
+
+    function applyFilters() {
+      const productId = productSel.value;
+      const productLabel = productSel.options[productSel.selectedIndex]?.text || 'Producto seleccionado';
+      const fromDate = fromInput.value || 'sin fecha inicial';
+      const toDate = toInput.value || 'sin fecha final';
+      const movementTypeText = formatMovementType(typeSel.value);
+
+      if (!productId) {
+        productTitle.textContent = 'Movimientos de inventario';
+        rangeInfo.textContent = `Mostrando ${movementTypeText} entre ${fromDate} y ${toDate}.`;
+      } else {
+        productTitle.textContent = `Movimientos · ${productLabel}`;
+        rangeInfo.textContent = `Mostrando ${movementTypeText} entre ${fromDate} y ${toDate}.`;
+      }
+
+      renderKardex();
+    }
+
+    async function updateProductStock(product, newStock) {
+      const cols = getProductColumns();
+
+      if (!currentProductTable || !cols.pk || !cols.stock) {
+        throw new Error('No se detectó PK o columna de stock.');
+      }
+
+      const pkValue = product[cols.pk];
+
+      const response = await fetch(`/api/table/${currentProductTable.schema}/${currentProductTable.table}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          pkValue,
+          changes: {
+            [cols.stock]: newStock
+          }
+        })
+      });
+
+      const result = await response.json();
+
+      if (!result.updated) {
+        throw new Error(result.error || 'No se pudo actualizar el stock.');
+      }
+
+      product[cols.stock] = newStock;
+    }
+
+    async function insertKardexMovement(movement) {
+      if (!currentKardexTable) {
+        throw new Error('No se detectó la tabla KardexInventario.');
+      }
+
+      const costoImpacto = Math.abs(movement.impact) * movement.price;
+
+      const values = {
+        IDProducto: movement.productId,
+        CodigoBarra: movement.barcode,
+        TipoMovimiento: movement.type,
+        Cantidad: movement.quantity,
+        StockAnterior: movement.oldStock,
+        StockNuevo: movement.newStock,
+        Impacto: movement.impact,
+        PrecioUnitario: movement.price,
+        CostoImpacto: costoImpacto,
+        DocumentoReferencia: movement.document,
+        Bodega: movement.warehouse,
+        Responsable: movement.responsible,
+        Detalle: movement.detail,
+        FechaMovimiento: movement.date
+      };
+
+      const response = await fetch(`/api/table/${currentKardexTable.schema}/${currentKardexTable.table}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          values
+        })
+      });
+
+      const result = await response.json();
+
+      if (!result.inserted) {
+        throw new Error(result.error || 'No se pudo guardar el movimiento en KardexInventario.');
+      }
+    }
+
+    async function registerMovement(event) {
+      event.preventDefault();
+
+      if (!selectedProduct) {
+        showToast('Primero busca o escanea un producto.', false);
+        return;
+      }
+
+      const cols = getProductColumns();
+
+      const type = movementType.value;
+      const quantity = Number(movementQuantity.value);
+      const responsible = movementResponsible.value.trim();
+      const detail = movementDetail.value.trim();
+
+      if (!type || !quantity || quantity <= 0 || !responsible || !detail) {
+        showToast('Completa tipo, cantidad, responsable y detalle.', false);
+        return;
+      }
+
+      const oldStock = safeNumber(selectedProduct[cols.stock]);
+      const impact = getMovementImpact(type, quantity);
+      const newStock = oldStock + impact;
+
+      if (newStock < 0) {
+        showToast('No hay stock suficiente para registrar esa salida.', false);
+        return;
+      }
+
+      try {
+        if (impact !== 0) {
+          await updateProductStock(selectedProduct, newStock);
+        }
+
+        const movement = {
+          date: movementDate.value,
+          productId: selectedProduct[cols.pk],
+          productName: selectedProduct[cols.name] ?? 'Producto sin nombre',
+          barcode: selectedProduct[cols.barcode] ?? quickBarcode.value.trim(),
+          document: movementDocument.value.trim(),
+          type,
+          detail,
+          warehouse: movementWarehouse.value.trim(),
+          responsible,
+          quantity,
+          price: safeNumber(selectedProduct[cols.price]),
+          oldStock,
+          newStock,
+          impact
+        };
+
+        await insertKardexMovement(movement);
+
+        movements.push(movement);
+
+        productStockInfo.textContent = newStock.toString();
+
+        applyFilters();
+        showToast('Movimiento registrado y guardado en KardexInventario');
+
+        movementType.value = '';
+        movementQuantity.value = '';
+        movementResponsible.value = '';
+        movementDocument.value = '';
+        movementWarehouse.value = '';
+        movementDetail.value = '';
+
+        updateImpactPreview();
+      } catch (error) {
+        showToast(error.message || 'No se pudo registrar el movimiento.', false);
+      }
+    }
+
+    function clearQuickForm() {
+      quickBarcode.value = '';
+      movementType.value = '';
+      movementQuantity.value = '';
+      movementResponsible.value = '';
+      movementDocument.value = '';
+      movementWarehouse.value = '';
+      movementDetail.value = '';
+      selectedProduct = null;
+      setSelectedProduct(null);
+    }
+
+    function exportCsv() {
+      const filtered = getFilteredMovements();
+
+      if (!filtered.length) {
+        alert('No hay movimientos para exportar.');
+        return;
+      }
+
+      const headers = [
+        'Fecha',
+        'Producto',
+        'CodigoBarra',
+        'Documento',
+        'Tipo',
+        'Detalle',
+        'Bodega',
+        'Responsable',
+        'Cantidad',
+        'StockAnterior',
+        'StockNuevo',
+        'Impacto'
+      ];
+
+      const lines = filtered.map(movement => [
+        movement.date,
+        `${movement.productId} ${movement.productName}`,
+        movement.barcode,
+        movement.document,
+        movementTypes[movement.type]?.label || movement.type,
+        movement.detail,
+        movement.warehouse,
+        movement.responsible,
+        movement.quantity,
+        movement.oldStock,
+        movement.newStock,
+        movement.impact
+      ]);
+
+      const csvContent = [headers, ...lines]
+        .map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+      const blob = new Blob([csvContent], {
+        type: 'text/csv;charset=utf-8;'
+      });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      link.href = url;
+      link.download = 'kardex_movimientos.csv';
+      link.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    async function cargarCamaras() {
+      hideScannerMessages();
+
+      if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia ||
+        !navigator.mediaDevices.enumerateDevices
+      ) {
+        showScannerError(
+          'Tu navegador no permite acceder a cámaras desde esta página. Usa localhost, 127.0.0.1 o HTTPS.'
+        );
+        return;
+      }
+
+      try {
+        const permisoTemporal = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+
+        permisoTemporal.getTracks().forEach(track => track.stop());
+
+        const dispositivos = await navigator.mediaDevices.enumerateDevices();
+
+        const camaras = dispositivos.filter(function(dispositivo) {
+          return dispositivo.kind === 'videoinput';
+        });
+
+        scannerCamera.innerHTML = '';
+
+        if (camaras.length === 0) {
+          scannerCamera.innerHTML = '<option value="">No se encontraron cámaras</option>';
+          showScannerError('No se encontró ninguna cámara. Revisá que DroidCam esté abierto.');
+          return;
+        }
+
+        camaras.forEach(function(camara, index) {
+          const option = document.createElement('option');
+
+          option.value = camara.deviceId;
+          option.textContent =
+            camara.label && camara.label.trim() !== ''
+              ? camara.label
+              : 'Cámara ' + (index + 1);
+
+          scannerCamera.appendChild(option);
+        });
+
+        const indiceDroidCam = camaras.findIndex(function(camara) {
+          return camara.label.toLowerCase().includes('droidcam');
+        });
+
+        scannerCamera.selectedIndex = indiceDroidCam >= 0 ? indiceDroidCam : 0;
+
+        showToast('Cámaras cargadas correctamente');
+      } catch (error) {
+        console.error(error);
+
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          showScannerError(
+            'Permiso de cámara denegado. Habilita la cámara en el navegador y vuelve a intentar.'
+          );
+          return;
+        }
+
+        if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          showScannerError(
+            'No se encontró ninguna cámara. Verifica que DroidCam esté abierto y conectado.'
+          );
+          return;
+        }
+
+        if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          showScannerError(
+            'La cámara está siendo usada por otra aplicación. Cierra Cámara de Windows, Discord, OBS, Zoom u otra pestaña.'
+          );
+          return;
+        }
+
+        showScannerError(
+          'No se pudieron cargar las cámaras. Revisa permisos del navegador o abre la página desde localhost.'
+        );
+      }
+    }
+
+    async function openScanner() {
+      hideScannerMessages();
+
+      scannerContainer.style.display = 'none';
+      startScanner.style.display = 'inline-block';
+      stopScanner.style.display = 'none';
+      loadScannerCameras.disabled = false;
+
+      scannerModal.showModal();
+
+      await cargarCamaras();
+    }
+
+    function iniciarScanner() {
+      hideScannerMessages();
+
+      const cameraId = scannerCamera.value;
+
+      if (!cameraId) {
+        showScannerError('Primero cargá y seleccioná una cámara.');
+        return;
+      }
+
+      if (scannerActivo) {
+        return;
+      }
+
+      scannerContainer.style.display = 'block';
+
+      Quagga.init({
+        inputStream: {
+          type: 'LiveStream',
+          target: scannerContainer,
+          constraints: {
+            deviceId: {
+              exact: cameraId
+            },
+            width: {
+              ideal: 1280
+            },
+            height: {
+              ideal: 720
+            }
+          },
+          area: {
+            top: '20%',
+            right: '5%',
+            left: '5%',
+            bottom: '20%'
+          }
+        },
+        locator: {
+          patchSize: 'medium',
+          halfSample: false
+        },
+        numOfWorkers: navigator.hardwareConcurrency || 4,
+        frequency: 10,
+        decoder: {
+          readers: [
+            'upc_reader',
+            'upc_e_reader',
+            'ean_reader',
+            'ean_8_reader',
+            'code_128_reader',
+            'code_39_reader'
+          ],
+          multiple: false
+        },
+        locate: true
+      }, function(error) {
+        if (error) {
+          console.error(error);
+          showScannerError('No se pudo iniciar el escáner con la cámara seleccionada.');
+          scannerContainer.style.display = 'none';
+          return;
+        }
+
+        Quagga.start();
+
+        scannerActivo = true;
+
+        startScanner.style.display = 'none';
+        stopScanner.style.display = 'inline-block';
+        loadScannerCameras.disabled = true;
+      });
+
+      Quagga.offDetected(onDetected);
+      Quagga.onDetected(onDetected);
+    }
+
+    function onDetected(data) {
+      if (!data || !data.codeResult || !data.codeResult.code) {
+        return;
+      }
+
+      const codigo = data.codeResult.code;
+      const formato = data.codeResult.format;
+
+      if (codigo === ultimoCodigo) {
+        repeticiones++;
+      } else {
+        ultimoCodigo = codigo;
+        repeticiones = 1;
+      }
+
+      if (repeticiones < 2) {
+        return;
+      }
+
+      quickBarcode.value = codigo;
+
+      scannerResult.textContent = `Código detectado correctamente: ${codigo} (${formato})`;
+      scannerResult.style.display = 'block';
+
+      detenerScanner();
+      searchProductFromBarcode();
+
+      setTimeout(() => {
+        if (scannerModal.open) {
+          scannerModal.close();
+        }
+      }, 700);
+    }
+
+    function detenerScanner() {
+      if (!scannerActivo) {
+        return;
+      }
+
+      try {
+        Quagga.stop();
+
+        scannerActivo = false;
+
+        scannerContainer.style.display = 'none';
+
+        startScanner.style.display = 'inline-block';
+        stopScanner.style.display = 'none';
+        loadScannerCameras.disabled = false;
+
+        ultimoCodigo = null;
+        repeticiones = 0;
+      } catch (error) {
+        console.error(error);
+        showScannerError('Ocurrió un error al detener la cámara.');
+      }
+    }
+
+    function closeScannerModal() {
+      detenerScanner();
+      scannerModal.close();
     }
 
     function loadSearchFromUrl() {
       const params = new URLSearchParams(window.location.search);
-      const search = (params.get('search') || '').trim().toLowerCase();
+      const search = normalizeText(params.get('search') || '');
 
       if (!search) return;
 
-      const options = [...productSel.options];
-      const match = options.find(option =>
-        option.value && option.text.toLowerCase().includes(search)
-      );
+      const cols = getProductColumns();
+
+      const match = productRows.find(row => {
+        return Object.values(row).some(value =>
+          normalizeText(value).includes(search)
+        );
+      });
 
       if (match) {
-        productSel.value = match.value;
-        applyFilters();
+        const barcode = match[cols.barcode] ?? '';
+        quickBarcode.value = barcode;
+        setSelectedProduct(match);
       } else {
-        rangeInfo.textContent = `Búsqueda recibida: "${search}". No se encontró coincidencia exacta en la lista de productos demo.`;
+        rangeInfo.textContent = `Búsqueda recibida: "${search}". No se encontró coincidencia en productos.`;
       }
     }
 
+    productSel.addEventListener('change', () => {
+      if (!productSel.value) {
+        setSelectedProduct(null);
+        applyFilters();
+        return;
+      }
+
+      const product = findProductByPk(productSel.value);
+
+      if (product) {
+        const cols = getProductColumns();
+        quickBarcode.value = product[cols.barcode] ?? '';
+        setSelectedProduct(product);
+      }
+
+      applyFilters();
+    });
+
+    searchBarcodeBtn.addEventListener('click', searchProductFromBarcode);
+
+    quickBarcode.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        searchProductFromBarcode();
+      }
+    });
+
+    scanBarcodeBtn.addEventListener('click', openScanner);
+    loadScannerCameras.addEventListener('click', cargarCamaras);
+    startScanner.addEventListener('click', iniciarScanner);
+    stopScanner.addEventListener('click', detenerScanner);
+    closeScanner.addEventListener('click', closeScannerModal);
+    cancelScanner.addEventListener('click', closeScannerModal);
+
     filterBtn.addEventListener('click', applyFilters);
 
-    exportBtn.addEventListener('click', () => {
-      alert('Aquí se conectará la exportación real del Kardex a CSV.');
-    });
+    exportBtn.addEventListener('click', exportCsv);
 
     refreshBtn.addEventListener('click', () => {
       location.reload();
     });
 
-    loadSearchFromUrl();
+    movementType.addEventListener('change', updateImpactPreview);
+    movementQuantity.addEventListener('input', updateImpactPreview);
+    quickMovementForm.addEventListener('submit', registerMovement);
+    clearQuickFormBtn.addEventListener('click', clearQuickForm);
+
+    async function initKardex() {
+      try {
+        setTodayDefaults();
+        await loadProducts();
+        await loadKardexMovements();
+        loadSearchFromUrl();
+        applyFilters();
+      } catch (error) {
+        productLookupInfo.textContent = error.message;
+        showToast(error.message || 'No se pudo iniciar Kardex', false);
+        renderKardex();
+      }
+    }
+
+    initKardex();
   </script>
 </body>
 </html>

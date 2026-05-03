@@ -4,7 +4,9 @@
   <meta charset="utf-8" />
   <title>TrackCore – Panel de Productos Automotrices</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
 
   <style>
     .panel-summary {
@@ -121,6 +123,69 @@
       opacity: 0.9;
     }
 
+    .barcode-control {
+      display: flex;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    .barcode-control input {
+      flex: 1;
+    }
+
+    .barcode-control .scan-barcode-btn {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .scanner-help {
+      margin-top: 0.75rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    #scannerContainer {
+      width: 100%;
+      max-width: 760px;
+      height: 430px;
+      margin-top: 1rem;
+      background: #000;
+      display: none;
+      overflow: hidden;
+      position: relative;
+      border-radius: 10px;
+    }
+
+    #scannerContainer video,
+    #scannerContainer canvas {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover;
+    }
+
+    .scanner-line {
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      top: 50%;
+      height: 3px;
+      background: #dc2626;
+      z-index: 10;
+      opacity: 0.85;
+    }
+
+    .scanner-result {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      border: 1px solid #bbf7d0;
+      background: #ecfdf5;
+      color: #166534;
+      font-weight: 700;
+    }
+
     @media (max-width: 980px) {
       .panel-summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -130,6 +195,15 @@
     @media (max-width: 640px) {
       .panel-summary {
         grid-template-columns: 1fr;
+      }
+
+      .barcode-control {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      #scannerContainer {
+        height: 320px;
       }
     }
   </style>
@@ -178,7 +252,8 @@
           <input
             id="searchInput"
             type="text"
-            placeholder="Buscar por código, nombre, descripción, marca o cualquier dato..."
+            placeholder="Buscar por código, código de barras, nombre, descripción, marca o cualquier dato..."
+            autocomplete="off"
           />
         </div>
 
@@ -314,6 +389,45 @@
     </div>
   </dialog>
 
+  <dialog id="scannerModal" class="modal">
+    <div class="card">
+      <header class="modal-header">
+        <h3>Escanear código de barras</h3>
+        <button type="button" id="closeScanner" class="btn ghost">✕</button>
+      </header>
+
+      <div class="field">
+        <label for="scannerCamera">Cámara disponible</label>
+        <div class="select-wrap">
+          <select id="scannerCamera">
+            <option value="">Cargando cámaras...</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button type="button" class="btn btn-light" id="loadScannerCameras">Cargar cámaras</button>
+        <button type="button" class="btn primary" id="startScanner">Iniciar escáner</button>
+        <button type="button" class="btn danger" id="stopScanner" style="display:none;">Detener cámara</button>
+      </div>
+
+      <div id="scannerContainer">
+        <div class="scanner-line"></div>
+      </div>
+
+      <div id="scannerResult" class="scanner-result"></div>
+
+      <p class="scanner-help">
+        Coloca el código horizontal, evita reflejos y acerca o aleja lentamente la cámara.
+        El código detectado se colocará automáticamente en el campo seleccionado.
+      </p>
+
+      <footer class="modal-footer">
+        <button type="button" id="cancelScanner" class="btn ghost">Cancelar</button>
+      </footer>
+    </div>
+  </dialog>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
@@ -353,6 +467,16 @@
     const okViewer        = document.getElementById('okViewer');
     const copyViewer      = document.getElementById('copyViewer');
 
+    const scannerModal        = document.getElementById('scannerModal');
+    const scannerCamera       = document.getElementById('scannerCamera');
+    const scannerContainer    = document.getElementById('scannerContainer');
+    const scannerResult       = document.getElementById('scannerResult');
+    const closeScanner        = document.getElementById('closeScanner');
+    const cancelScanner       = document.getElementById('cancelScanner');
+    const loadScannerCameras  = document.getElementById('loadScannerCameras');
+    const startScanner        = document.getElementById('startScanner');
+    const stopScanner         = document.getElementById('stopScanner');
+
     const toast           = document.getElementById('toast');
 
     let allRows = [];
@@ -364,6 +488,13 @@
     let brandColumn = '';
     let categoryColumn = '';
     let stockColumn = '';
+    let barcodeColumn = '';
+
+    let scannerActivo = false;
+    let scannerTargetInput = null;
+    let ultimoCodigoDetectado = null;
+    let repeticionesCodigo = 0;
+    let initialSearchApplied = false;
 
     function normalizeText(value) {
       return (value ?? '')
@@ -374,6 +505,10 @@
         .replace(/[\u0300-\u036f]/g, '');
     }
 
+    function normalizeColumnName(value) {
+      return normalizeText(value).replace(/[\s_]/g, '');
+    }
+
     function labelFor(schema, table) {
       return schema.toLowerCase() === 'dbo' ? table : `${schema}.${table}`;
     }
@@ -382,6 +517,7 @@
       toast.textContent = message;
       toast.className = 'toast ' + (ok ? 'ok' : 'err');
       toast.style.opacity = 1;
+
       setTimeout(() => {
         toast.style.opacity = 0;
       }, 2200);
@@ -389,9 +525,37 @@
 
     function safeNumber(value) {
       if (value === null || value === undefined || value === '') return 0;
+
       const cleaned = value.toString().replace(/[^0-9.-]/g, '');
       const num = Number(cleaned);
+
       return Number.isFinite(num) ? num : 0;
+    }
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name) || '';
+    }
+
+    function applyInitialSearchParam() {
+      if (initialSearchApplied) {
+        return;
+      }
+
+      const query = getQueryParam('search').trim();
+
+      if (!query) {
+        initialSearchApplied = true;
+        return;
+      }
+
+      searchInput.value = query;
+      page = 1;
+      initialSearchApplied = true;
+
+      buildBody();
+
+      hint.textContent += ` Búsqueda aplicada desde el menú: "${query}".`;
     }
 
     function openViewer(title, content) {
@@ -415,12 +579,29 @@
 
     function findColumnByPatterns(patterns) {
       for (const column of columns) {
-        const normalizedColumn = normalizeText(column).replace(/[\s_]/g, '');
+        const normalizedColumn = normalizeColumnName(column);
+
         for (const pattern of patterns) {
-          if (normalizedColumn.includes(pattern)) return column;
+          if (normalizedColumn.includes(pattern)) {
+            return column;
+          }
         }
       }
+
       return '';
+    }
+
+    function isBarcodeColumn(column) {
+      const normalizedColumn = normalizeColumnName(column);
+
+      return [
+        'codigobarra',
+        'codigodebarra',
+        'barcode',
+        'barras',
+        'upc',
+        'ean'
+      ].some(pattern => normalizedColumn.includes(pattern));
     }
 
     function detectImportantColumns() {
@@ -461,10 +642,20 @@
         'disponible',
         'inventario'
       ]);
+
+      barcodeColumn = findColumnByPatterns([
+        'codigobarra',
+        'codigodebarra',
+        'barcode',
+        'barras',
+        'upc',
+        'ean'
+      ]);
     }
 
     function buildHead() {
       thead.innerHTML = '';
+
       const tr = document.createElement('tr');
 
       columns.forEach(column => {
@@ -483,6 +674,7 @@
     function getSelectedTableParts() {
       const value = productsTableSel.value || '';
       const parts = value.split('|');
+
       return {
         schema: parts[0] || '',
         table: parts[1] || ''
@@ -491,11 +683,29 @@
 
     function makeEditableControl(column, value) {
       const input = document.createElement('input');
+
       input.type = 'text';
       input.className = 'table-input';
       input.value = (value ?? '').toString();
       input.dataset.col = column;
-      return input;
+
+      if (!isBarcodeColumn(column)) {
+        return input;
+      }
+
+      const wrap = document.createElement('div');
+      wrap.className = 'barcode-control';
+
+      const scanBtn = document.createElement('button');
+      scanBtn.type = 'button';
+      scanBtn.className = 'btn small scan-barcode-btn';
+      scanBtn.textContent = 'Escanear';
+      scanBtn.onclick = () => openScannerForInput(input);
+
+      wrap.appendChild(input);
+      wrap.appendChild(scanBtn);
+
+      return wrap;
     }
 
     function getFilteredRows() {
@@ -552,10 +762,12 @@
       }
 
       const totalStock = rows.reduce((acc, row) => acc + safeNumber(row[stockColumn]), 0);
+
       const lowStock = rows.filter(row => {
         const stock = safeNumber(row[stockColumn]);
         return stock > 0 && stock <= 5;
       }).length;
+
       const outStock = rows.filter(row => safeNumber(row[stockColumn]) <= 0).length;
 
       sumStock.textContent = totalStock.toString();
@@ -567,10 +779,12 @@
       tbody.innerHTML = '';
 
       const filteredRows = getFilteredRows();
+
       updateSummary(filteredRows);
 
       const size = parseInt(pageSizeSel.value, 10);
       const totalPages = Math.max(1, Math.ceil(filteredRows.length / size));
+
       page = Math.min(page, totalPages);
 
       const start = (page - 1) * size;
@@ -583,6 +797,7 @@
       if (!columns.length) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
+
         td.colSpan = 1;
         td.innerHTML = `
           <div class="empty-state">
@@ -590,14 +805,17 @@
             <span class="muted">Verifica que la tabla seleccionada tenga registros o que el backend esté respondiendo correctamente.</span>
           </div>
         `;
+
         tr.appendChild(td);
         tbody.appendChild(tr);
+
         return;
       }
 
       if (!pageRows.length) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
+
         td.colSpan = columns.length + 1;
         td.innerHTML = `
           <div class="empty-state">
@@ -605,8 +823,10 @@
             <span class="muted">Prueba cambiando los filtros o registra un nuevo producto automotriz.</span>
           </div>
         `;
+
         tr.appendChild(td);
         tbody.appendChild(tr);
+
         return;
       }
 
@@ -622,9 +842,12 @@
             td.className = 'pk';
             td.ondblclick = () => openViewer(column, value);
           } else {
-            const input = makeEditableControl(column, value);
-            td.appendChild(input);
-            td.ondblclick = () => openViewer(column, input.value);
+            const control = makeEditableControl(column, value);
+
+            td.appendChild(control);
+
+            const input = td.querySelector('input[data-col]');
+            td.ondblclick = () => openViewer(column, input ? input.value : value);
           }
 
           tr.appendChild(td);
@@ -647,16 +870,22 @@
         saveBtn.onclick = async () => {
           try {
             const changes = {};
+
             tr.querySelectorAll('input[data-col]').forEach(input => {
-              changes[input.dataset.col] = input.value;
+              changes[input.dataset.col] = input.value.trim();
             });
 
             const pkValue = row[pkColumn];
 
             const response = await fetch(`/api/table/${currentSchema}/${currentTable}`, {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ pkValue, changes })
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                pkValue,
+                changes
+              })
             });
 
             const result = await response.json();
@@ -665,7 +894,10 @@
               columns.forEach(column => {
                 if (column !== pkColumn) {
                   const input = tr.querySelector(`input[data-col="${column}"]`);
-                  if (input) row[column] = input.value;
+
+                  if (input) {
+                    row[column] = input.value.trim();
+                  }
                 }
               });
 
@@ -681,13 +913,20 @@
 
         deleteBtn.onclick = async () => {
           const pkValue = row[pkColumn];
-          if (!confirm(`¿Deseas borrar este producto?\n\n${pkColumn}: ${pkValue}`)) return;
+
+          if (!confirm(`¿Deseas borrar este producto?\n\n${pkColumn}: ${pkValue}`)) {
+            return;
+          }
 
           try {
             const response = await fetch(`/api/table/${currentSchema}/${currentTable}`, {
               method: 'DELETE',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ pkValue })
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                pkValue
+              })
             });
 
             const result = await response.json();
@@ -716,7 +955,9 @@
     function buildInsertFields() {
       insertFields.innerHTML = '';
 
-      if (!columns.length) return;
+      if (!columns.length) {
+        return;
+      }
 
       columns.forEach(column => {
         const wrap = document.createElement('div');
@@ -735,7 +976,25 @@
         }
 
         wrap.appendChild(label);
-        wrap.appendChild(input);
+
+        if (isBarcodeColumn(column) && column !== pkColumn) {
+          const barcodeWrap = document.createElement('div');
+          barcodeWrap.className = 'barcode-control';
+
+          const scanBtn = document.createElement('button');
+          scanBtn.type = 'button';
+          scanBtn.className = 'btn scan-barcode-btn';
+          scanBtn.textContent = 'Escanear';
+          scanBtn.onclick = () => openScannerForInput(input);
+
+          barcodeWrap.appendChild(input);
+          barcodeWrap.appendChild(scanBtn);
+
+          wrap.appendChild(barcodeWrap);
+        } else {
+          wrap.appendChild(input);
+        }
+
         insertFields.appendChild(wrap);
       });
     }
@@ -773,8 +1032,10 @@
 
       tableList.forEach(item => {
         const option = document.createElement('option');
+
         option.value = `${item.schema_name}|${item.table_name}`;
         option.textContent = labelFor(item.schema_name, item.table_name);
+
         productsTableSel.appendChild(option);
       });
 
@@ -804,6 +1065,7 @@
         allRows = [];
         columns = [];
         updateSummary([]);
+
         return;
       }
 
@@ -833,20 +1095,30 @@
               </td>
             </tr>
           `;
+
           updateSummary([]);
           buildInsertFields();
+
           hint.textContent = `Tabla cargada: ${labelFor(schema, table)}. No hay registros todavía.`;
+
+          applyInitialSearchParam();
+
           return;
         }
 
         buildHead();
+
         page = 1;
+
         buildBody();
         buildInsertFields();
 
         hint.textContent =
           `Tabla cargada: ${labelFor(schema, table)}. PK detectada: ${pkColumn || 'no detectada'}.` +
-          (stockColumn ? ` Columna de stock detectada: ${stockColumn}.` : ' No se detectó columna de stock.');
+          (stockColumn ? ` Columna de stock detectada: ${stockColumn}.` : ' No se detectó columna de stock.') +
+          (barcodeColumn ? ` Columna de código de barras detectada: ${barcodeColumn}.` : ' No se detectó columna de código de barras.');
+
+        applyInitialSearchParam();
 
       } catch (error) {
         thead.innerHTML = '';
@@ -860,11 +1132,204 @@
             </td>
           </tr>
         `;
+
         updateSummary([]);
+
         hint.textContent = 'Error al cargar la tabla seleccionada.';
         showToast('Error al cargar productos', false);
       }
     }
+
+    async function loadCamerasForScanner() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+
+        const cameras = devices.filter(device => device.kind === 'videoinput');
+
+        scannerCamera.innerHTML = '';
+
+        if (!cameras.length) {
+          scannerCamera.innerHTML = '<option value="">No se encontraron cámaras</option>';
+          showToast('No se encontraron cámaras', false);
+          return;
+        }
+
+        cameras.forEach((camera, index) => {
+          const option = document.createElement('option');
+
+          option.value = camera.deviceId;
+          option.textContent = camera.label && camera.label.trim() !== ''
+            ? camera.label
+            : `Cámara ${index + 1}`;
+
+          scannerCamera.appendChild(option);
+        });
+
+        const droidCamIndex = cameras.findIndex(camera =>
+          normalizeText(camera.label).includes('droidcam')
+        );
+
+        scannerCamera.selectedIndex = droidCamIndex >= 0 ? droidCamIndex : 0;
+      } catch (error) {
+        showToast('No se pudieron cargar las cámaras', false);
+      }
+    }
+
+    async function openScannerForInput(input) {
+      scannerTargetInput = input;
+      scannerResult.style.display = 'none';
+      scannerResult.textContent = '';
+      scannerModal.showModal();
+
+      await loadCamerasForScanner();
+    }
+
+    function startBarcodeScanner() {
+      const cameraId = scannerCamera.value;
+
+      if (!cameraId) {
+        showToast('Selecciona una cámara', false);
+        return;
+      }
+
+      if (scannerActivo) {
+        return;
+      }
+
+      scannerContainer.style.display = 'block';
+
+      Quagga.init({
+        inputStream: {
+          type: 'LiveStream',
+          target: scannerContainer,
+          constraints: {
+            deviceId: cameraId,
+            width: {
+              ideal: 1280
+            },
+            height: {
+              ideal: 720
+            },
+            facingMode: 'environment'
+          },
+          area: {
+            top: '20%',
+            right: '5%',
+            left: '5%',
+            bottom: '20%'
+          }
+        },
+        locator: {
+          patchSize: 'medium',
+          halfSample: false
+        },
+        numOfWorkers: navigator.hardwareConcurrency || 4,
+        frequency: 10,
+        decoder: {
+          readers: [
+            'upc_reader',
+            'upc_e_reader',
+            'ean_reader',
+            'ean_8_reader',
+            'code_128_reader',
+            'code_39_reader'
+          ],
+          multiple: false
+        },
+        locate: true
+      }, function(error) {
+        if (error) {
+          console.error(error);
+          showToast('No se pudo iniciar el escáner', false);
+          scannerContainer.style.display = 'none';
+          return;
+        }
+
+        Quagga.start();
+
+        scannerActivo = true;
+
+        startScanner.style.display = 'none';
+        stopScanner.style.display = 'inline-block';
+
+        ultimoCodigoDetectado = null;
+        repeticionesCodigo = 0;
+      });
+
+      Quagga.offDetected(onBarcodeDetected);
+      Quagga.onDetected(onBarcodeDetected);
+    }
+
+    function onBarcodeDetected(data) {
+      if (!data || !data.codeResult || !data.codeResult.code) {
+        return;
+      }
+
+      const code = data.codeResult.code;
+      const format = data.codeResult.format;
+
+      if (code === ultimoCodigoDetectado) {
+        repeticionesCodigo++;
+      } else {
+        ultimoCodigoDetectado = code;
+        repeticionesCodigo = 1;
+      }
+
+      if (repeticionesCodigo < 2) {
+        return;
+      }
+
+      if (scannerTargetInput) {
+        scannerTargetInput.value = code;
+        scannerTargetInput.dispatchEvent(new Event('input', { bubbles: true }));
+        scannerTargetInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      scannerResult.textContent = `Código detectado: ${code} (${format})`;
+      scannerResult.style.display = 'block';
+
+      showToast('Código de barras detectado');
+
+      stopBarcodeScanner();
+
+      setTimeout(() => {
+        if (scannerModal.open) {
+          scannerModal.close();
+        }
+      }, 700);
+    }
+
+    function stopBarcodeScanner() {
+      if (!scannerActivo) {
+        return;
+      }
+
+      try {
+        Quagga.stop();
+      } catch (error) {
+        console.error(error);
+      }
+
+      scannerActivo = false;
+
+      scannerContainer.style.display = 'none';
+      startScanner.style.display = 'inline-block';
+      stopScanner.style.display = 'none';
+
+      ultimoCodigoDetectado = null;
+      repeticionesCodigo = 0;
+    }
+
+    function closeScannerModal() {
+      stopBarcodeScanner();
+      scannerModal.close();
+    }
+
+    loadScannerCameras.addEventListener('click', loadCamerasForScanner);
+    startScanner.addEventListener('click', startBarcodeScanner);
+    stopScanner.addEventListener('click', stopBarcodeScanner);
+    closeScanner.addEventListener('click', closeScannerModal);
+    cancelScanner.addEventListener('click', closeScannerModal);
 
     productsTableSel.addEventListener('change', () => {
       page = 1;
@@ -874,14 +1339,19 @@
     refreshBtn.addEventListener('click', async () => {
       try {
         const selectedBefore = productsTableSel.value;
+
         const ok = await fetchTables();
-        if (!ok) return;
+
+        if (!ok) {
+          return;
+        }
 
         if ([...productsTableSel.options].some(opt => opt.value === selectedBefore)) {
           productsTableSel.value = selectedBefore;
         }
 
         await loadSelectedTable();
+
         showToast('Panel actualizado');
       } catch {
         showToast('No se pudo actualizar', false);
@@ -933,14 +1403,18 @@
 
         [...insertFields.querySelectorAll('input')].forEach(input => {
           if (!input.disabled) {
-            values[input.name] = input.value;
+            values[input.name] = input.value.trim();
           }
         });
 
         const response = await fetch(`/api/table/${currentSchema}/${currentTable}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ values })
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            values
+          })
         });
 
         const result = await response.json();
@@ -961,7 +1435,11 @@
     async function initPanel() {
       try {
         const ok = await fetchTables();
-        if (!ok) return;
+
+        if (!ok) {
+          return;
+        }
+
         await loadSelectedTable();
       } catch (error) {
         hint.textContent = 'No se pudo iniciar el panel.';
