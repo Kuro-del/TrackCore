@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>TrackCore – Panel de Productos Automotrices</title>
+  <title>TrackCore - Panel de Productos Automotrices</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css?v=2" />
 
@@ -78,7 +78,6 @@
       height: 9px;
       border-radius: 999px;
       background: #22c55e;
-      box-shadow: none;
     }
 
     .table-actions {
@@ -123,6 +122,24 @@
       opacity: 0.9;
     }
 
+    /* ── Campo de búsqueda con botón de escanear integrado ── */
+    .search-barcode-wrap {
+      display: flex;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    .search-barcode-wrap input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .search-barcode-wrap .scan-search-btn {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    /* ── Controles de código de barras en tabla/formulario ── */
     .barcode-control {
       display: flex;
       gap: 0.45rem;
@@ -138,6 +155,7 @@
       white-space: nowrap;
     }
 
+    /* ── Scanner modal ── */
     .scanner-help {
       margin-top: 0.75rem;
       color: var(--muted);
@@ -186,6 +204,18 @@
       font-weight: 700;
     }
 
+    /* ── NUEVO: div de error del escáner (igual que en kardex) ── */
+    .scanner-error {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #991b1b;
+      font-weight: 700;
+    }
+
     @media (max-width: 980px) {
       .panel-summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -195,6 +225,11 @@
     @media (max-width: 640px) {
       .panel-summary {
         grid-template-columns: 1fr;
+      }
+
+      .search-barcode-wrap {
+        flex-direction: column;
+        align-items: stretch;
       }
 
       .barcode-control {
@@ -212,7 +247,7 @@
 
   <header class="appbar">
     <div class="brand">
-      <a href="index.html" class="icon-btn" title="Volver al menú" aria-label="Volver al menú">
+      <a href="index.html" class="icon-btn" title="Volver al menu" aria-label="Volver al menu">
         <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
           <path fill="currentColor" d="M15.7 5.3a1 1 0 0 1 0 1.4L11.4 11l4.3 4.3a1 1 0 1 1-1.4 1.4l-5-5a1 1 0 0 1 0-1.4l5-5a1 1 0 0 1 1.4 0z" />
         </svg>
@@ -221,7 +256,7 @@
     </div>
 
     <div class="actions">
-      <button id="refreshBtn" class="btn ghost" title="Actualizar datos">↻</button>
+      <button id="refreshBtn" class="btn ghost" title="Actualizar datos">&#x21BB;</button>
     </div>
   </header>
 
@@ -230,31 +265,38 @@
     <section class="controls card">
       <div class="status-badge">
         <span class="status-dot"></span>
-        <span>Módulo activo: inventario de productos automotrices</span>
+        <span>Modulo activo: inventario de productos automotrices</span>
       </div>
 
-      <h1 id="viewTitle">Gestión de productos automotrices</h1>
+      <h1 id="viewTitle">Gestion de productos automotrices</h1>
       <p id="viewDescription" class="muted">
-        Desde aquí puedes consultar, buscar, insertar, editar y eliminar productos automotrices de tu inventario.
+        Desde aqui puedes consultar, buscar, insertar, editar y eliminar productos automotrices de tu inventario.
       </p>
 
       <div class="panel-toolbar">
+
         <div class="field">
           <label for="productsTable">Tabla detectada</label>
           <div class="select-wrap">
             <select id="productsTable"></select>
           </div>
-          <div class="field-inline-help">El sistema intentará seleccionar automáticamente la tabla de productos.</div>
+          <div class="field-inline-help">El sistema intentara seleccionar automaticamente la tabla de productos.</div>
         </div>
 
+        <!-- ── Campo de busqueda con boton "Escanear" integrado ── -->
         <div class="field field-wide">
           <label for="searchInput">Buscar producto</label>
-          <input
-            id="searchInput"
-            type="text"
-            placeholder="Buscar por código, código de barras, nombre, descripción, marca o cualquier dato..."
-            autocomplete="off"
-          />
+          <div class="search-barcode-wrap">
+            <input
+              id="searchInput"
+              type="text"
+              placeholder="Buscar por codigo, codigo de barras, nombre, marca..."
+              autocomplete="off"
+            />
+            <button type="button" id="scanSearchBtn" class="btn btn-light scan-search-btn">
+              Escanear
+            </button>
+          </div>
         </div>
 
         <div class="field">
@@ -267,11 +309,11 @@
         </div>
 
         <div class="field">
-          <label for="categoryFilter">Categoría</label>
+          <label for="categoryFilter">Categoria</label>
           <input
             id="categoryFilter"
             type="text"
-            placeholder="Ej: Filtros, aceites, bujías"
+            placeholder="Ej: Filtros, aceites, bujias"
           />
         </div>
 
@@ -288,7 +330,7 @@
         </div>
 
         <div class="field">
-          <label for="pageSize">Filas por página</label>
+          <label for="pageSize">Filas por pagina</label>
           <div class="select-wrap">
             <select id="pageSize">
               <option>10</option>
@@ -304,15 +346,16 @@
           <label>&nbsp;</label>
           <button id="insertBtn" class="btn btn-light">+ Nuevo producto</button>
         </div>
+
       </div>
 
       <div id="hint" class="hint-block">
-        Cargando configuración del panel...
+        Cargando configuracion del panel...
       </div>
     </section>
 
     <section class="card">
-      <h2 style="margin-top:0;">Resumen rápido</h2>
+      <h2 style="margin-top:0;">Resumen rapido</h2>
 
       <div class="panel-summary">
         <div class="summary-card">
@@ -352,18 +395,19 @@
       </div>
 
       <div class="pager">
-        <button id="prevBtn" class="btn ghost">◀</button>
-        <span id="pageInfo" class="muted">Página 1/1</span>
-        <button id="nextBtn" class="btn ghost">▶</button>
+        <button id="prevBtn" class="btn ghost">&#9664;</button>
+        <span id="pageInfo" class="muted">Pagina 1/1</span>
+        <button id="nextBtn" class="btn ghost">&#9654;</button>
       </div>
     </section>
   </main>
 
+  <!-- ── Modal: insertar producto ── -->
   <dialog id="insertModal" class="modal">
     <form id="insertForm" method="dialog" class="card">
       <header class="modal-header">
         <h3 id="insertTitle">Registrar nuevo producto automotriz</h3>
-        <button type="button" id="closeInsert" class="btn ghost">✕</button>
+        <button type="button" id="closeInsert" class="btn ghost">&#x2715;</button>
       </header>
 
       <div id="insertFields" class="grid-form"></div>
@@ -375,11 +419,12 @@
     </form>
   </dialog>
 
+  <!-- ── Modal: visor de contenido ── -->
   <dialog id="viewerModal" class="modal">
     <div class="card">
       <header class="modal-header">
         <h3 id="viewerTitle">Contenido</h3>
-        <button type="button" id="closeViewer" class="btn ghost">✕</button>
+        <button type="button" id="closeViewer" class="btn ghost">&#x2715;</button>
       </header>
       <pre id="viewerBody" class="viewer"></pre>
       <footer class="modal-footer">
@@ -389,26 +434,27 @@
     </div>
   </dialog>
 
+  <!-- ── Modal: escaner de codigo de barras ── -->
   <dialog id="scannerModal" class="modal">
     <div class="card">
       <header class="modal-header">
-        <h3>Escanear código de barras</h3>
-        <button type="button" id="closeScanner" class="btn ghost">✕</button>
+        <h3 id="scannerModalTitle">Escanear codigo de barras</h3>
+        <button type="button" id="closeScanner" class="btn ghost">&#x2715;</button>
       </header>
 
       <div class="field">
-        <label for="scannerCamera">Cámara disponible</label>
+        <label for="scannerCamera">Camara disponible</label>
         <div class="select-wrap">
           <select id="scannerCamera">
-            <option value="">Cargando cámaras...</option>
+            <option value="">Presiona "Cargar camaras"</option>
           </select>
         </div>
       </div>
 
       <div class="buttons">
-        <button type="button" class="btn btn-light" id="loadScannerCameras">Cargar cámaras</button>
-        <button type="button" class="btn primary" id="startScanner">Iniciar escáner</button>
-        <button type="button" class="btn danger" id="stopScanner" style="display:none;">Detener cámara</button>
+        <button type="button" class="btn btn-light" id="loadScannerCameras">Cargar camaras</button>
+        <button type="button" class="btn primary" id="startScanner">Escanear codigo</button>
+        <button type="button" class="btn danger" id="stopScanner" style="display:none;">Detener camara</button>
       </div>
 
       <div id="scannerContainer">
@@ -416,10 +462,13 @@
       </div>
 
       <div id="scannerResult" class="scanner-result"></div>
+      <!-- NUEVO: div de error igual al de kardex -->
+      <div id="scannerError" class="scanner-error"></div>
 
       <p class="scanner-help">
-        Coloca el código horizontal, evita reflejos y acerca o aleja lentamente la cámara.
-        El código detectado se colocará automáticamente en el campo seleccionado.
+        Abri DroidCam primero. Luego carga las camaras, selecciona <strong>DroidCam Video</strong>
+        y presiona <strong>Escanear codigo</strong>. El codigo detectado se colocara automaticamente
+        en el campo de busqueda.
       </p>
 
       <footer class="modal-footer">
@@ -431,78 +480,92 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-    const productsTableSel = document.getElementById('productsTable');
-    const refreshBtn       = document.getElementById('refreshBtn');
-    const searchInput      = document.getElementById('searchInput');
-    const brandFilter      = document.getElementById('brandFilter');
-    const categoryFilter   = document.getElementById('categoryFilter');
-    const stockFilter      = document.getElementById('stockFilter');
-    const pageSizeSel      = document.getElementById('pageSize');
-    const insertBtn        = document.getElementById('insertBtn');
-    const hint             = document.getElementById('hint');
+    /* ════════════════════════════════════════════════
+       REFERENCIAS AL DOM
+    ════════════════════════════════════════════════ */
+    const productsTableSel  = document.getElementById('productsTable');
+    const refreshBtn        = document.getElementById('refreshBtn');
+    const searchInput       = document.getElementById('searchInput');
+    const scanSearchBtn     = document.getElementById('scanSearchBtn');
+    const brandFilter       = document.getElementById('brandFilter');
+    const categoryFilter    = document.getElementById('categoryFilter');
+    const stockFilter       = document.getElementById('stockFilter');
+    const pageSizeSel       = document.getElementById('pageSize');
+    const insertBtn         = document.getElementById('insertBtn');
+    const hint              = document.getElementById('hint');
 
-    const grid            = document.getElementById('grid');
-    const thead           = grid.querySelector('thead');
-    const tbody           = grid.querySelector('tbody');
-    const prevBtn         = document.getElementById('prevBtn');
-    const nextBtn         = document.getElementById('nextBtn');
-    const pageInfo        = document.getElementById('pageInfo');
+    const grid              = document.getElementById('grid');
+    const thead             = grid.querySelector('thead');
+    const tbody             = grid.querySelector('tbody');
+    const prevBtn           = document.getElementById('prevBtn');
+    const nextBtn           = document.getElementById('nextBtn');
+    const pageInfo          = document.getElementById('pageInfo');
 
-    const sumProducts     = document.getElementById('sumProducts');
-    const sumStock        = document.getElementById('sumStock');
-    const sumLowStock     = document.getElementById('sumLowStock');
-    const sumOutStock     = document.getElementById('sumOutStock');
+    const sumProducts       = document.getElementById('sumProducts');
+    const sumStock          = document.getElementById('sumStock');
+    const sumLowStock       = document.getElementById('sumLowStock');
+    const sumOutStock       = document.getElementById('sumOutStock');
 
-    const insertModal     = document.getElementById('insertModal');
-    const insertForm      = document.getElementById('insertForm');
-    const insertFields    = document.getElementById('insertFields');
-    const insertTitle     = document.getElementById('insertTitle');
-    const closeInsert     = document.getElementById('closeInsert');
-    const cancelInsert    = document.getElementById('cancelInsert');
+    const insertModal       = document.getElementById('insertModal');
+    const insertForm        = document.getElementById('insertForm');
+    const insertFields      = document.getElementById('insertFields');
+    const insertTitle       = document.getElementById('insertTitle');
+    const closeInsert       = document.getElementById('closeInsert');
+    const cancelInsert      = document.getElementById('cancelInsert');
 
-    const viewerModal     = document.getElementById('viewerModal');
-    const viewerTitle     = document.getElementById('viewerTitle');
-    const viewerBody      = document.getElementById('viewerBody');
-    const closeViewer     = document.getElementById('closeViewer');
-    const okViewer        = document.getElementById('okViewer');
-    const copyViewer      = document.getElementById('copyViewer');
+    const viewerModal       = document.getElementById('viewerModal');
+    const viewerTitle       = document.getElementById('viewerTitle');
+    const viewerBody        = document.getElementById('viewerBody');
+    const closeViewer       = document.getElementById('closeViewer');
+    const okViewer          = document.getElementById('okViewer');
+    const copyViewer        = document.getElementById('copyViewer');
 
-    const scannerModal        = document.getElementById('scannerModal');
-    const scannerCamera       = document.getElementById('scannerCamera');
-    const scannerContainer    = document.getElementById('scannerContainer');
-    const scannerResult       = document.getElementById('scannerResult');
-    const closeScanner        = document.getElementById('closeScanner');
-    const cancelScanner       = document.getElementById('cancelScanner');
-    const loadScannerCameras  = document.getElementById('loadScannerCameras');
-    const startScanner        = document.getElementById('startScanner');
-    const stopScanner         = document.getElementById('stopScanner');
+    const scannerModal      = document.getElementById('scannerModal');
+    const scannerModalTitle = document.getElementById('scannerModalTitle');
+    const scannerCamera     = document.getElementById('scannerCamera');
+    const scannerContainer  = document.getElementById('scannerContainer');
+    const scannerResult     = document.getElementById('scannerResult');
+    const scannerError      = document.getElementById('scannerError');
+    const closeScanner      = document.getElementById('closeScanner');
+    const cancelScanner     = document.getElementById('cancelScanner');
+    const loadScannerCameras = document.getElementById('loadScannerCameras');
+    const startScanner      = document.getElementById('startScanner');
+    const stopScanner       = document.getElementById('stopScanner');
 
-    const toast           = document.getElementById('toast');
+    const toast             = document.getElementById('toast');
 
-    let allRows = [];
-    let columns = [];
-    let page = 1;
-    let currentSchema = '';
-    let currentTable = '';
-    let pkColumn = '';
-    let brandColumn = '';
-    let categoryColumn = '';
-    let stockColumn = '';
-    let barcodeColumn = '';
+    /* ════════════════════════════════════════════════
+       ESTADO GLOBAL
+    ════════════════════════════════════════════════ */
+    let allRows             = [];
+    let columns             = [];
+    let page                = 1;
+    let currentSchema       = '';
+    let currentTable        = '';
+    let pkColumn            = '';
+    let brandColumn         = '';
+    let categoryColumn      = '';
+    let stockColumn         = '';
+    let barcodeColumn       = '';
 
-    let scannerActivo = false;
-    let scannerTargetInput = null;
-    let ultimoCodigoDetectado = null;
-    let repeticionesCodigo = 0;
+    // El escaner puede apuntar al searchInput o a un input de fila/formulario
+    let scannerTargetInput  = null;
+    // Cuando es true el resultado del escaneo se pone en searchInput y dispara buildBody
+    let scannerIsForSearch  = false;
+
+    let scannerActivo       = false;
+    let ultimoCodigo        = null;
+    let repeticiones        = 0;
+
     let initialSearchApplied = false;
 
+    /* ════════════════════════════════════════════════
+       HELPERS GENERALES
+    ════════════════════════════════════════════════ */
     function normalizeText(value) {
       return (value ?? '')
-        .toString()
-        .trim()
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
+        .toString().trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
 
     function normalizeColumnName(value) {
@@ -510,63 +573,48 @@
     }
 
     function labelFor(schema, table) {
-      return schema.toLowerCase() === 'dbo' ? table : `${schema}.${table}`;
+      return schema.toLowerCase() === 'dbo' ? table : schema + '.' + table;
     }
 
     function showToast(message, ok = true) {
       toast.textContent = message;
-      toast.className = 'toast ' + (ok ? 'ok' : 'err');
+      toast.className   = 'toast ' + (ok ? 'ok' : 'err');
       toast.style.opacity = 1;
-
-      setTimeout(() => {
-        toast.style.opacity = 0;
-      }, 2200);
+      setTimeout(() => { toast.style.opacity = 0; }, 2200);
     }
 
     function safeNumber(value) {
       if (value === null || value === undefined || value === '') return 0;
-
       const cleaned = value.toString().replace(/[^0-9.-]/g, '');
       const num = Number(cleaned);
-
       return Number.isFinite(num) ? num : 0;
     }
 
     function getQueryParam(name) {
-      const params = new URLSearchParams(window.location.search);
-      return params.get(name) || '';
+      return new URLSearchParams(window.location.search).get(name) || '';
     }
 
     function applyInitialSearchParam() {
-      if (initialSearchApplied) {
-        return;
-      }
-
+      if (initialSearchApplied) return;
       const query = getQueryParam('search').trim();
-
-      if (!query) {
-        initialSearchApplied = true;
-        return;
-      }
-
+      if (!query) { initialSearchApplied = true; return; }
       searchInput.value = query;
       page = 1;
       initialSearchApplied = true;
-
       buildBody();
-
-      hint.textContent += ` Búsqueda aplicada desde el menú: "${query}".`;
+      hint.textContent += ' Busqueda aplicada desde el menu: "' + query + '".';
     }
 
+    /* ════════════════════════════════════════════════
+       VISOR DE CONTENIDO
+    ════════════════════════════════════════════════ */
     function openViewer(title, content) {
       viewerTitle.textContent = title;
-      viewerBody.textContent = (content ?? '').toString();
+      viewerBody.textContent  = (content ?? '').toString();
       viewerModal.showModal();
     }
 
-    [closeViewer, okViewer].forEach(btn => {
-      btn.onclick = () => viewerModal.close();
-    });
+    [closeViewer, okViewer].forEach(btn => { btn.onclick = () => viewerModal.close(); });
 
     copyViewer.onclick = async () => {
       try {
@@ -577,289 +625,183 @@
       }
     };
 
+    /* ════════════════════════════════════════════════
+       DETECCION DE COLUMNAS
+    ════════════════════════════════════════════════ */
     function findColumnByPatterns(patterns) {
-      for (const column of columns) {
-        const normalizedColumn = normalizeColumnName(column);
-
-        for (const pattern of patterns) {
-          if (normalizedColumn.includes(pattern)) {
-            return column;
-          }
+      for (const col of columns) {
+        const n = normalizeColumnName(col);
+        for (const p of patterns) {
+          if (n.includes(p)) return col;
         }
       }
-
       return '';
     }
 
-    function isBarcodeColumn(column) {
-      const normalizedColumn = normalizeColumnName(column);
-
-      return [
-        'codigobarra',
-        'codigodebarra',
-        'barcode',
-        'barras',
-        'upc',
-        'ean'
-      ].some(pattern => normalizedColumn.includes(pattern));
+    function isBarcodeColumn(col) {
+      const n = normalizeColumnName(col);
+      return ['codigobarra','codigodebarra','barcode','barras','upc','ean'].some(p => n.includes(p));
     }
 
     function detectImportantColumns() {
       pkColumn = findColumnByPatterns([
-        'idproducto',
-        'productoid',
-        'idrepuesto',
-        'idarticulo',
-        'iditem',
-        'idinventario',
-        'id',
-        'codigoproducto',
-        'codproducto',
-        'codigo',
-        'sku'
+        'idproducto','productoid','idrepuesto','idarticulo','iditem',
+        'idinventario','id','codigoproducto','codproducto','codigo','sku'
       ]) || columns[0] || '';
 
-      brandColumn = findColumnByPatterns([
-        'marca',
-        'brand',
-        'fabricante'
-      ]);
-
-      categoryColumn = findColumnByPatterns([
-        'categoria',
-        'tipo',
-        'linea',
-        'familia',
-        'rubro',
-        'grupo'
-      ]);
-
-      stockColumn = findColumnByPatterns([
-        'stockactual',
-        'stock',
-        'existencia',
-        'cantidad',
-        'disponible',
-        'inventario'
-      ]);
-
-      barcodeColumn = findColumnByPatterns([
-        'codigobarra',
-        'codigodebarra',
-        'barcode',
-        'barras',
-        'upc',
-        'ean'
-      ]);
+      brandColumn    = findColumnByPatterns(['marca','brand','fabricante']);
+      categoryColumn = findColumnByPatterns(['categoria','tipo','linea','familia','rubro','grupo']);
+      stockColumn    = findColumnByPatterns(['stockactual','stock','existencia','cantidad','disponible','inventario']);
+      barcodeColumn  = findColumnByPatterns(['codigobarra','codigodebarra','barcode','barras','upc','ean']);
     }
 
+    /* ════════════════════════════════════════════════
+       CONSTRUCCION DE TABLA
+    ════════════════════════════════════════════════ */
     function buildHead() {
       thead.innerHTML = '';
-
       const tr = document.createElement('tr');
-
-      columns.forEach(column => {
+      columns.forEach(col => {
         const th = document.createElement('th');
-        th.textContent = column;
+        th.textContent = col;
         tr.appendChild(th);
       });
-
-      const actionsTh = document.createElement('th');
-      actionsTh.textContent = 'Acciones';
-      tr.appendChild(actionsTh);
-
+      const th = document.createElement('th');
+      th.textContent = 'Acciones';
+      tr.appendChild(th);
       thead.appendChild(tr);
     }
 
     function getSelectedTableParts() {
-      const value = productsTableSel.value || '';
-      const parts = value.split('|');
-
-      return {
-        schema: parts[0] || '',
-        table: parts[1] || ''
-      };
+      const parts = (productsTableSel.value || '').split('|');
+      return { schema: parts[0] || '', table: parts[1] || '' };
     }
 
-    function makeEditableControl(column, value) {
+    function makeEditableControl(col, value) {
       const input = document.createElement('input');
-
-      input.type = 'text';
+      input.type      = 'text';
       input.className = 'table-input';
-      input.value = (value ?? '').toString();
-      input.dataset.col = column;
+      input.value     = (value ?? '').toString();
+      input.dataset.col = col;
 
-      if (!isBarcodeColumn(column)) {
-        return input;
-      }
+      if (!isBarcodeColumn(col)) return input;
 
-      const wrap = document.createElement('div');
+      const wrap    = document.createElement('div');
       wrap.className = 'barcode-control';
-
       const scanBtn = document.createElement('button');
-      scanBtn.type = 'button';
+      scanBtn.type      = 'button';
       scanBtn.className = 'btn small scan-barcode-btn';
       scanBtn.textContent = 'Escanear';
-      scanBtn.onclick = () => openScannerForInput(input);
-
+      scanBtn.onclick = () => openScannerForInput(input, false);
       wrap.appendChild(input);
       wrap.appendChild(scanBtn);
-
       return wrap;
     }
 
     function getFilteredRows() {
-      const term = normalizeText(searchInput.value);
-      const brandTerm = normalizeText(brandFilter.value);
+      const term         = normalizeText(searchInput.value);
+      const brandTerm    = normalizeText(brandFilter.value);
       const categoryTerm = normalizeText(categoryFilter.value);
-      const stockState = stockFilter.value;
+      const stockState   = stockFilter.value;
 
       let filtered = [...allRows];
 
-      if (brandTerm && brandColumn) {
-        filtered = filtered.filter(row =>
-          normalizeText(row[brandColumn]).includes(brandTerm)
-        );
-      }
+      if (brandTerm && brandColumn)
+        filtered = filtered.filter(r => normalizeText(r[brandColumn]).includes(brandTerm));
 
-      if (categoryTerm && categoryColumn) {
-        filtered = filtered.filter(row =>
-          normalizeText(row[categoryColumn]).includes(categoryTerm)
-        );
-      }
+      if (categoryTerm && categoryColumn)
+        filtered = filtered.filter(r => normalizeText(r[categoryColumn]).includes(categoryTerm));
 
       if (stockState !== 'all' && stockColumn) {
-        filtered = filtered.filter(row => {
-          const stock = safeNumber(row[stockColumn]);
-
-          if (stockState === 'in-stock') return stock > 0;
-          if (stockState === 'low-stock') return stock > 0 && stock <= 5;
-          if (stockState === 'out-of-stock') return stock <= 0;
-
+        filtered = filtered.filter(r => {
+          const s = safeNumber(r[stockColumn]);
+          if (stockState === 'in-stock')      return s > 0;
+          if (stockState === 'low-stock')     return s > 0 && s <= 5;
+          if (stockState === 'out-of-stock')  return s <= 0;
           return true;
         });
       }
 
-      if (term) {
-        filtered = filtered.filter(row =>
-          columns.some(column =>
-            normalizeText(row[column]).includes(term)
-          )
+      if (term)
+        filtered = filtered.filter(r =>
+          columns.some(col => normalizeText(r[col]).includes(term))
         );
-      }
 
       return filtered;
     }
 
     function updateSummary(rows) {
       sumProducts.textContent = rows.length.toString();
-
       if (!stockColumn) {
-        sumStock.textContent = '0';
+        sumStock.textContent    = '0';
         sumLowStock.textContent = '0';
         sumOutStock.textContent = '0';
         return;
       }
-
-      const totalStock = rows.reduce((acc, row) => acc + safeNumber(row[stockColumn]), 0);
-
-      const lowStock = rows.filter(row => {
-        const stock = safeNumber(row[stockColumn]);
-        return stock > 0 && stock <= 5;
-      }).length;
-
-      const outStock = rows.filter(row => safeNumber(row[stockColumn]) <= 0).length;
-
-      sumStock.textContent = totalStock.toString();
-      sumLowStock.textContent = lowStock.toString();
-      sumOutStock.textContent = outStock.toString();
+      sumStock.textContent    = rows.reduce((a, r) => a + safeNumber(r[stockColumn]), 0).toString();
+      sumLowStock.textContent = rows.filter(r => { const s = safeNumber(r[stockColumn]); return s > 0 && s <= 5; }).length.toString();
+      sumOutStock.textContent = rows.filter(r => safeNumber(r[stockColumn]) <= 0).length.toString();
     }
 
     function buildBody() {
       tbody.innerHTML = '';
-
       const filteredRows = getFilteredRows();
-
       updateSummary(filteredRows);
 
-      const size = parseInt(pageSizeSel.value, 10);
+      const size       = parseInt(pageSizeSel.value, 10);
       const totalPages = Math.max(1, Math.ceil(filteredRows.length / size));
+      page             = Math.min(page, totalPages);
+      const start      = (page - 1) * size;
+      const pageRows   = filteredRows.slice(start, start + size);
 
-      page = Math.min(page, totalPages);
-
-      const start = (page - 1) * size;
-      const pageRows = filteredRows.slice(start, start + size);
-
-      pageInfo.textContent = `Página ${page}/${totalPages} — ${filteredRows.length} registros`;
+      pageInfo.textContent = 'Pagina ' + page + '/' + totalPages + ' - ' + filteredRows.length + ' registros';
       prevBtn.disabled = page <= 1;
       nextBtn.disabled = page >= totalPages;
 
       if (!columns.length) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
-
         td.colSpan = 1;
-        td.innerHTML = `
-          <div class="empty-state">
-            <strong>No hay columnas para mostrar.</strong>
-            <span class="muted">Verifica que la tabla seleccionada tenga registros o que el backend esté respondiendo correctamente.</span>
-          </div>
-        `;
-
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-
+        td.innerHTML = '<div class="empty-state"><strong>No hay columnas para mostrar.</strong><span class="muted">Verifica la tabla seleccionada.</span></div>';
+        tr.appendChild(td); tbody.appendChild(tr);
         return;
       }
 
       if (!pageRows.length) {
         const tr = document.createElement('tr');
         const td = document.createElement('td');
-
         td.colSpan = columns.length + 1;
-        td.innerHTML = `
-          <div class="empty-state">
-            <strong>No se encontraron productos.</strong>
-            <span class="muted">Prueba cambiando los filtros o registra un nuevo producto automotriz.</span>
-          </div>
-        `;
-
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-
+        td.innerHTML = '<div class="empty-state"><strong>No se encontraron productos.</strong><span class="muted">Prueba cambiando los filtros o registra un nuevo producto.</span></div>';
+        tr.appendChild(td); tbody.appendChild(tr);
         return;
       }
 
       pageRows.forEach(row => {
         const tr = document.createElement('tr');
 
-        columns.forEach(column => {
-          const td = document.createElement('td');
-          const value = row[column] ?? '';
+        columns.forEach(col => {
+          const td    = document.createElement('td');
+          const value = row[col] ?? '';
 
-          if (column === pkColumn) {
-            td.textContent = value;
-            td.className = 'pk';
-            td.ondblclick = () => openViewer(column, value);
+          if (col === pkColumn) {
+            td.textContent  = value;
+            td.className    = 'pk';
+            td.ondblclick   = () => openViewer(col, value);
           } else {
-            const control = makeEditableControl(column, value);
-
-            td.appendChild(control);
-
-            const input = td.querySelector('input[data-col]');
-            td.ondblclick = () => openViewer(column, input ? input.value : value);
+            const ctrl = makeEditableControl(col, value);
+            td.appendChild(ctrl);
+            const inp = td.querySelector('input[data-col]');
+            td.ondblclick = () => openViewer(col, inp ? inp.value : value);
           }
-
           tr.appendChild(td);
         });
 
-        const actionsTd = document.createElement('td');
+        const actionsTd   = document.createElement('td');
         actionsTd.className = 'actions-cell';
-
         const actionsWrap = document.createElement('div');
         actionsWrap.className = 'table-actions';
 
-        const saveBtn = document.createElement('button');
+        const saveBtn   = document.createElement('button');
         saveBtn.className = 'btn small primary';
         saveBtn.textContent = 'Guardar';
 
@@ -870,67 +812,40 @@
         saveBtn.onclick = async () => {
           try {
             const changes = {};
-
-            tr.querySelectorAll('input[data-col]').forEach(input => {
-              changes[input.dataset.col] = input.value.trim();
+            tr.querySelectorAll('input[data-col]').forEach(inp => {
+              changes[inp.dataset.col] = inp.value.trim();
             });
-
-            const pkValue = row[pkColumn];
-
-            const response = await fetch(`/api/table/${currentSchema}/${currentTable}`, {
+            const res = await fetch('/api/table/' + currentSchema + '/' + currentTable, {
               method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                pkValue,
-                changes
-              })
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ pkValue: row[pkColumn], changes })
             });
-
-            const result = await response.json();
-
+            const result = await res.json();
             if (result.updated) {
-              columns.forEach(column => {
-                if (column !== pkColumn) {
-                  const input = tr.querySelector(`input[data-col="${column}"]`);
-
-                  if (input) {
-                    row[column] = input.value.trim();
-                  }
+              columns.forEach(col => {
+                if (col !== pkColumn) {
+                  const inp = tr.querySelector('input[data-col="' + col + '"]');
+                  if (inp) row[col] = inp.value.trim();
                 }
               });
-
               buildBody();
               showToast('Producto actualizado');
             } else {
               showToast(result.error || 'No se pudo actualizar', false);
             }
-          } catch (error) {
-            showToast('Error al actualizar el producto', false);
-          }
+          } catch { showToast('Error al actualizar el producto', false); }
         };
 
         deleteBtn.onclick = async () => {
           const pkValue = row[pkColumn];
-
-          if (!confirm(`¿Deseas borrar este producto?\n\n${pkColumn}: ${pkValue}`)) {
-            return;
-          }
-
+          if (!confirm('Deseas borrar este producto?\n\n' + pkColumn + ': ' + pkValue)) return;
           try {
-            const response = await fetch(`/api/table/${currentSchema}/${currentTable}`, {
+            const res = await fetch('/api/table/' + currentSchema + '/' + currentTable, {
               method: 'DELETE',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                pkValue
-              })
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ pkValue })
             });
-
-            const result = await response.json();
-
+            const result = await res.json();
             if (result.deleted) {
               allRows = allRows.filter(item => item[pkColumn] !== pkValue);
               buildBody();
@@ -938,59 +853,45 @@
             } else {
               showToast(result.error || 'No se pudo borrar', false);
             }
-          } catch (error) {
-            showToast('Error al borrar el producto', false);
-          }
+          } catch { showToast('Error al borrar el producto', false); }
         };
 
         actionsWrap.appendChild(saveBtn);
         actionsWrap.appendChild(deleteBtn);
         actionsTd.appendChild(actionsWrap);
         tr.appendChild(actionsTd);
-
         tbody.appendChild(tr);
       });
     }
 
     function buildInsertFields() {
       insertFields.innerHTML = '';
+      if (!columns.length) return;
 
-      if (!columns.length) {
-        return;
-      }
-
-      columns.forEach(column => {
-        const wrap = document.createElement('div');
+      columns.forEach(col => {
+        const wrap  = document.createElement('div');
         wrap.className = 'field';
-
         const label = document.createElement('label');
-        label.textContent = column + (column === pkColumn ? ' (autogenerado / PK)' : '');
-
+        label.textContent = col + (col === pkColumn ? ' (autogenerado / PK)' : '');
         const input = document.createElement('input');
-        input.type = 'text';
-        input.name = column;
-        input.placeholder = column === pkColumn ? 'No editar' : `Escribe ${column}...`;
-
-        if (column === pkColumn) {
-          input.disabled = true;
-        }
+        input.type        = 'text';
+        input.name        = col;
+        input.placeholder = col === pkColumn ? 'No editar' : 'Escribe ' + col + '...';
+        if (col === pkColumn) input.disabled = true;
 
         wrap.appendChild(label);
 
-        if (isBarcodeColumn(column) && column !== pkColumn) {
-          const barcodeWrap = document.createElement('div');
-          barcodeWrap.className = 'barcode-control';
-
+        if (isBarcodeColumn(col) && col !== pkColumn) {
+          const bWrap   = document.createElement('div');
+          bWrap.className = 'barcode-control';
           const scanBtn = document.createElement('button');
-          scanBtn.type = 'button';
-          scanBtn.className = 'btn scan-barcode-btn';
+          scanBtn.type        = 'button';
+          scanBtn.className   = 'btn scan-barcode-btn';
           scanBtn.textContent = 'Escanear';
-          scanBtn.onclick = () => openScannerForInput(input);
-
-          barcodeWrap.appendChild(input);
-          barcodeWrap.appendChild(scanBtn);
-
-          wrap.appendChild(barcodeWrap);
+          scanBtn.onclick = () => openScannerForInput(input, false);
+          bWrap.appendChild(input);
+          bWrap.appendChild(scanBtn);
+          wrap.appendChild(bWrap);
         } else {
           wrap.appendChild(input);
         }
@@ -999,84 +900,60 @@
       });
     }
 
+    /* ════════════════════════════════════════════════
+       CARGA DE TABLAS Y DATOS
+    ════════════════════════════════════════════════ */
     function detectProductTables(tables) {
-      const patterns = [
-        'producto',
-        'productos',
-        'product',
-        'products',
-        'inventario',
-        'inventory',
-        'repuesto',
-        'repuestos',
-        'articulo',
-        'articulos',
-        'item',
-        'items'
-      ];
-
+      const patterns = ['producto','productos','product','products','inventario','inventory',
+                        'repuesto','repuestos','articulo','articulos','item','items'];
       return tables.filter(item => {
-        const full = normalizeText(`${item.schema_name} ${item.table_name}`);
-        return patterns.some(pattern => full.includes(pattern));
+        const full = normalizeText(item.schema_name + ' ' + item.table_name);
+        return patterns.some(p => full.includes(p));
       });
     }
 
     async function fetchTables() {
-      const response = await fetch('/api/tables');
-      const data = await response.json();
-
+      const res      = await fetch('/api/tables');
+      const data     = await res.json();
       const detected = detectProductTables(data);
-      const tableList = detected.length ? detected : data;
+      const list     = detected.length ? detected : data;
 
       productsTableSel.innerHTML = '';
-
-      tableList.forEach(item => {
-        const option = document.createElement('option');
-
-        option.value = `${item.schema_name}|${item.table_name}`;
-        option.textContent = labelFor(item.schema_name, item.table_name);
-
-        productsTableSel.appendChild(option);
+      list.forEach(item => {
+        const opt   = document.createElement('option');
+        opt.value   = item.schema_name + '|' + item.table_name;
+        opt.textContent = labelFor(item.schema_name, item.table_name);
+        productsTableSel.appendChild(opt);
       });
 
-      if (!tableList.length) {
-        hint.textContent = 'No se encontraron tablas disponibles en la base de datos.';
+      if (!list.length) {
+        hint.textContent = 'No se encontraron tablas disponibles.';
         return false;
       }
-
-      if (detected.length) {
-        hint.textContent =
-          'Se detectó automáticamente una tabla relacionada con productos automotrices. Puedes cambiarla si lo necesitas.';
-      } else {
-        hint.textContent =
-          'No se detectó una tabla claramente relacionada con productos. Selecciona manualmente la tabla correcta.';
-      }
-
+      hint.textContent = detected.length
+        ? 'Se detecto automaticamente una tabla de productos. Puedes cambiarla si lo necesitas.'
+        : 'No se detecto una tabla clara. Selecciona manualmente la tabla correcta.';
       return true;
     }
 
     async function loadSelectedTable() {
       const { schema, table } = getSelectedTableParts();
-
       if (!schema || !table) {
         hint.textContent = 'Selecciona una tabla de productos para comenzar.';
-        thead.innerHTML = '';
-        tbody.innerHTML = '';
-        allRows = [];
-        columns = [];
+        thead.innerHTML  = '';
+        tbody.innerHTML  = '';
+        allRows = []; columns = [];
         updateSummary([]);
-
         return;
       }
 
       currentSchema = schema;
-      currentTable = table;
-
-      hint.textContent = `Cargando datos de: ${labelFor(schema, table)}...`;
+      currentTable  = table;
+      hint.textContent = 'Cargando datos de: ' + labelFor(schema, table) + '...';
 
       try {
-        const response = await fetch(`/api/table/${schema}/${table}?top=500`);
-        const rows = await response.json();
+        const res  = await fetch('/api/table/' + schema + '/' + table + '?top=500');
+        const rows = await res.json();
 
         allRows = Array.isArray(rows) ? rows : [];
         columns = allRows.length ? Object.keys(allRows[0]) : [];
@@ -1085,116 +962,137 @@
 
         if (!columns.length) {
           thead.innerHTML = '';
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="1">
-                <div class="empty-state">
-                  <strong>La tabla no tiene registros para mostrar.</strong>
-                  <span class="muted">Inserta el primer producto desde tu base de datos o ajusta el backend para exponer las columnas aunque no existan filas.</span>
-                </div>
-              </td>
-            </tr>
-          `;
-
+          tbody.innerHTML = '<tr><td colspan="1"><div class="empty-state"><strong>La tabla no tiene registros.</strong><span class="muted">Inserta el primer producto.</span></div></td></tr>';
           updateSummary([]);
           buildInsertFields();
-
-          hint.textContent = `Tabla cargada: ${labelFor(schema, table)}. No hay registros todavía.`;
-
+          hint.textContent = 'Tabla cargada: ' + labelFor(schema, table) + '. Sin registros todavia.';
           applyInitialSearchParam();
-
           return;
         }
 
         buildHead();
-
         page = 1;
-
         buildBody();
         buildInsertFields();
 
-        hint.textContent =
-          `Tabla cargada: ${labelFor(schema, table)}. PK detectada: ${pkColumn || 'no detectada'}.` +
-          (stockColumn ? ` Columna de stock detectada: ${stockColumn}.` : ' No se detectó columna de stock.') +
-          (barcodeColumn ? ` Columna de código de barras detectada: ${barcodeColumn}.` : ' No se detectó columna de código de barras.');
+        hint.textContent = 'Tabla: ' + labelFor(schema, table) +
+          '. PK: ' + (pkColumn || 'no detectada') + '.' +
+          (stockColumn    ? ' Stock: '    + stockColumn + '.'    : ' Sin columna de stock.') +
+          (barcodeColumn  ? ' Cod. barras: ' + barcodeColumn + '.' : ' Sin columna de barras.');
 
         applyInitialSearchParam();
-
-      } catch (error) {
+      } catch {
         thead.innerHTML = '';
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="1">
-              <div class="empty-state">
-                <strong>No se pudieron cargar los productos.</strong>
-                <span class="muted">Revisa el backend, la conexión con SQL Server o el nombre de la tabla.</span>
-              </div>
-            </td>
-          </tr>
-        `;
-
+        tbody.innerHTML = '<tr><td colspan="1"><div class="empty-state"><strong>No se pudieron cargar los productos.</strong><span class="muted">Revisa el backend o la conexion.</span></div></td></tr>';
         updateSummary([]);
-
-        hint.textContent = 'Error al cargar la tabla seleccionada.';
+        hint.textContent = 'Error al cargar la tabla.';
         showToast('Error al cargar productos', false);
       }
     }
 
-    async function loadCamerasForScanner() {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
+    /* ════════════════════════════════════════════════
+       ESCANER — logica identica a kardex.html
+    ════════════════════════════════════════════════ */
 
-        const cameras = devices.filter(device => device.kind === 'videoinput');
+    function showScannerError(msg) {
+      scannerError.textContent = msg;
+      scannerError.style.display = 'block';
+    }
+
+    function hideScannerMessages() {
+      scannerResult.style.display = 'none';
+      scannerError.style.display  = 'none';
+      scannerResult.textContent   = '';
+      scannerError.textContent    = '';
+    }
+
+    /**
+     * Abre el escaner.
+     * @param {HTMLInputElement|null} targetInput - input de destino (fila/formulario)
+     * @param {boolean} forSearch - true = el resultado va al searchInput y dispara busqueda
+     */
+    async function openScannerForInput(targetInput, forSearch) {
+      scannerTargetInput = targetInput;
+      scannerIsForSearch = !!forSearch;
+
+      hideScannerMessages();
+      scannerContainer.style.display = 'none';
+      startScanner.style.display     = 'inline-block';
+      stopScanner.style.display      = 'none';
+      loadScannerCameras.disabled    = false;
+
+      scannerModalTitle.textContent = forSearch
+        ? 'Escanear para buscar producto'
+        : 'Escanear codigo de barras';
+
+      scannerModal.showModal();
+      await cargarCamaras();
+    }
+
+    async function cargarCamaras() {
+      hideScannerMessages();
+
+      if (!navigator.mediaDevices ||
+          !navigator.mediaDevices.getUserMedia ||
+          !navigator.mediaDevices.enumerateDevices) {
+        showScannerError('Tu navegador no permite camaras desde esta pagina. Usa localhost o HTTPS.');
+        return;
+      }
+
+      try {
+        // Pedir permiso primero (igual que kardex) para que aparezcan los labels
+        const tmpStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        tmpStream.getTracks().forEach(t => t.stop());
+
+        const dispositivos = await navigator.mediaDevices.enumerateDevices();
+        const camaras      = dispositivos.filter(d => d.kind === 'videoinput');
 
         scannerCamera.innerHTML = '';
 
-        if (!cameras.length) {
-          scannerCamera.innerHTML = '<option value="">No se encontraron cámaras</option>';
-          showToast('No se encontraron cámaras', false);
+        if (!camaras.length) {
+          scannerCamera.innerHTML = '<option value="">No se encontraron camaras</option>';
+          showScannerError('No se encontro ninguna camara. Revisa que DroidCam este abierto.');
           return;
         }
 
-        cameras.forEach((camera, index) => {
-          const option = document.createElement('option');
-
-          option.value = camera.deviceId;
-          option.textContent = camera.label && camera.label.trim() !== ''
-            ? camera.label
-            : `Cámara ${index + 1}`;
-
-          scannerCamera.appendChild(option);
+        camaras.forEach((cam, i) => {
+          const opt       = document.createElement('option');
+          opt.value       = cam.deviceId;
+          opt.textContent = (cam.label && cam.label.trim() !== '') ? cam.label : 'Camara ' + (i + 1);
+          scannerCamera.appendChild(opt);
         });
 
-        const droidCamIndex = cameras.findIndex(camera =>
-          normalizeText(camera.label).includes('droidcam')
-        );
+        const idxDroid = camaras.findIndex(c => c.label.toLowerCase().includes('droidcam'));
+        scannerCamera.selectedIndex = idxDroid >= 0 ? idxDroid : 0;
 
-        scannerCamera.selectedIndex = droidCamIndex >= 0 ? droidCamIndex : 0;
-      } catch (error) {
-        showToast('No se pudieron cargar las cámaras', false);
+        showToast('Camaras cargadas');
+      } catch (err) {
+        console.error(err);
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          showScannerError('Permiso de camara denegado. Habilita la camara en el navegador.');
+          return;
+        }
+        if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          showScannerError('No se encontro ninguna camara. Verifica que DroidCam este conectado.');
+          return;
+        }
+        if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+          showScannerError('La camara esta siendo usada por otra aplicacion. Cierrala e intenta de nuevo.');
+          return;
+        }
+        showScannerError('No se pudieron cargar las camaras. Revisa permisos del navegador.');
       }
     }
 
-    async function openScannerForInput(input) {
-      scannerTargetInput = input;
-      scannerResult.style.display = 'none';
-      scannerResult.textContent = '';
-      scannerModal.showModal();
+    function iniciarScanner() {
+      hideScannerMessages();
 
-      await loadCamerasForScanner();
-    }
-
-    function startBarcodeScanner() {
       const cameraId = scannerCamera.value;
-
       if (!cameraId) {
-        showToast('Selecciona una cámara', false);
+        showScannerError('Primero carga y selecciona una camara.');
         return;
       }
-
-      if (scannerActivo) {
-        return;
-      }
+      if (scannerActivo) return;
 
       scannerContainer.style.display = 'block';
 
@@ -1203,191 +1101,142 @@
           type: 'LiveStream',
           target: scannerContainer,
           constraints: {
-            deviceId: cameraId,
-            width: {
-              ideal: 1280
-            },
-            height: {
-              ideal: 720
-            },
-            facingMode: 'environment'
+            deviceId: { exact: cameraId },
+            width:  { ideal: 1280 },
+            height: { ideal: 720 }
           },
-          area: {
-            top: '20%',
-            right: '5%',
-            left: '5%',
-            bottom: '20%'
-          }
+          area: { top: '20%', right: '5%', left: '5%', bottom: '20%' }
         },
-        locator: {
-          patchSize: 'medium',
-          halfSample: false
-        },
+        locator:    { patchSize: 'medium', halfSample: false },
         numOfWorkers: navigator.hardwareConcurrency || 4,
         frequency: 10,
         decoder: {
           readers: [
-            'upc_reader',
-            'upc_e_reader',
-            'ean_reader',
-            'ean_8_reader',
-            'code_128_reader',
-            'code_39_reader'
+            'upc_reader','upc_e_reader','ean_reader','ean_8_reader',
+            'code_128_reader','code_39_reader'
           ],
           multiple: false
         },
         locate: true
-      }, function(error) {
-        if (error) {
-          console.error(error);
-          showToast('No se pudo iniciar el escáner', false);
+      }, function(err) {
+        if (err) {
+          console.error(err);
+          showScannerError('No se pudo iniciar el escaner con la camara seleccionada.');
           scannerContainer.style.display = 'none';
           return;
         }
-
         Quagga.start();
-
         scannerActivo = true;
-
-        startScanner.style.display = 'none';
-        stopScanner.style.display = 'inline-block';
-
-        ultimoCodigoDetectado = null;
-        repeticionesCodigo = 0;
+        startScanner.style.display  = 'none';
+        stopScanner.style.display   = 'inline-block';
+        loadScannerCameras.disabled = true;
       });
 
-      Quagga.offDetected(onBarcodeDetected);
-      Quagga.onDetected(onBarcodeDetected);
+      Quagga.offDetected(onDetected);
+      Quagga.onDetected(onDetected);
     }
 
-    function onBarcodeDetected(data) {
-      if (!data || !data.codeResult || !data.codeResult.code) {
-        return;
-      }
+    function onDetected(data) {
+      if (!data || !data.codeResult || !data.codeResult.code) return;
 
-      const code = data.codeResult.code;
-      const format = data.codeResult.format;
+      const codigo  = data.codeResult.code;
+      const formato = data.codeResult.format;
 
-      if (code === ultimoCodigoDetectado) {
-        repeticionesCodigo++;
+      if (codigo === ultimoCodigo) {
+        repeticiones++;
       } else {
-        ultimoCodigoDetectado = code;
-        repeticionesCodigo = 1;
+        ultimoCodigo = codigo;
+        repeticiones = 1;
       }
+      if (repeticiones < 2) return;
 
-      if (repeticionesCodigo < 2) {
-        return;
-      }
-
-      if (scannerTargetInput) {
-        scannerTargetInput.value = code;
-        scannerTargetInput.dispatchEvent(new Event('input', { bubbles: true }));
+      // ── Colocar el codigo en el destino correcto ──
+      if (scannerIsForSearch) {
+        // Busqueda general: llenar searchInput y filtrar la tabla
+        searchInput.value = codigo;
+        page = 1;
+        buildBody();
+        showToast('Codigo detectado: ' + codigo + '. Busqueda aplicada.');
+      } else if (scannerTargetInput) {
+        // Campo de fila/formulario: comportamiento original
+        scannerTargetInput.value = codigo;
+        scannerTargetInput.dispatchEvent(new Event('input',  { bubbles: true }));
         scannerTargetInput.dispatchEvent(new Event('change', { bubbles: true }));
+        showToast('Codigo de barras detectado');
       }
 
-      scannerResult.textContent = `Código detectado: ${code} (${format})`;
+      scannerResult.textContent  = 'Codigo detectado: ' + codigo + ' (' + formato + ')';
       scannerResult.style.display = 'block';
 
-      showToast('Código de barras detectado');
-
-      stopBarcodeScanner();
+      detenerScanner();
 
       setTimeout(() => {
-        if (scannerModal.open) {
-          scannerModal.close();
-        }
+        if (scannerModal.open) scannerModal.close();
       }, 700);
     }
 
-    function stopBarcodeScanner() {
-      if (!scannerActivo) {
-        return;
-      }
-
-      try {
-        Quagga.stop();
-      } catch (error) {
-        console.error(error);
-      }
-
+    function detenerScanner() {
+      if (!scannerActivo) return;
+      try { Quagga.stop(); } catch (e) { console.error(e); }
       scannerActivo = false;
-
       scannerContainer.style.display = 'none';
-      startScanner.style.display = 'inline-block';
-      stopScanner.style.display = 'none';
-
-      ultimoCodigoDetectado = null;
-      repeticionesCodigo = 0;
+      startScanner.style.display     = 'inline-block';
+      stopScanner.style.display      = 'none';
+      loadScannerCameras.disabled    = false;
+      ultimoCodigo = null;
+      repeticiones = 0;
     }
 
     function closeScannerModal() {
-      stopBarcodeScanner();
+      detenerScanner();
       scannerModal.close();
     }
 
-    loadScannerCameras.addEventListener('click', loadCamerasForScanner);
-    startScanner.addEventListener('click', startBarcodeScanner);
-    stopScanner.addEventListener('click', stopBarcodeScanner);
+    /* ════════════════════════════════════════════════
+       EVENT LISTENERS — ESCANER
+    ════════════════════════════════════════════════ */
+    // Boton "Escanear" junto al campo de busqueda general
+    scanSearchBtn.addEventListener('click', () => openScannerForInput(null, true));
+
+    loadScannerCameras.addEventListener('click', cargarCamaras);
+    startScanner.addEventListener('click', iniciarScanner);
+    stopScanner.addEventListener('click', detenerScanner);
     closeScanner.addEventListener('click', closeScannerModal);
     cancelScanner.addEventListener('click', closeScannerModal);
 
-    productsTableSel.addEventListener('change', () => {
-      page = 1;
-      loadSelectedTable();
-    });
+    /* ════════════════════════════════════════════════
+       EVENT LISTENERS — PANEL
+    ════════════════════════════════════════════════ */
+    productsTableSel.addEventListener('change', () => { page = 1; loadSelectedTable(); });
 
     refreshBtn.addEventListener('click', async () => {
       try {
-        const selectedBefore = productsTableSel.value;
-
-        const ok = await fetchTables();
-
-        if (!ok) {
-          return;
-        }
-
-        if ([...productsTableSel.options].some(opt => opt.value === selectedBefore)) {
-          productsTableSel.value = selectedBefore;
-        }
-
+        const prev = productsTableSel.value;
+        const ok   = await fetchTables();
+        if (!ok) return;
+        if ([...productsTableSel.options].some(o => o.value === prev))
+          productsTableSel.value = prev;
         await loadSelectedTable();
-
         showToast('Panel actualizado');
-      } catch {
-        showToast('No se pudo actualizar', false);
-      }
+      } catch { showToast('No se pudo actualizar', false); }
     });
 
-    [searchInput, brandFilter, categoryFilter].forEach(input => {
-      input.addEventListener('input', () => {
-        page = 1;
-        buildBody();
-      });
+    [searchInput, brandFilter, categoryFilter].forEach(inp => {
+      inp.addEventListener('input', () => { page = 1; buildBody(); });
     });
 
-    [stockFilter, pageSizeSel].forEach(select => {
-      select.addEventListener('change', () => {
-        page = 1;
-        buildBody();
-      });
+    [stockFilter, pageSizeSel].forEach(sel => {
+      sel.addEventListener('change', () => { page = 1; buildBody(); });
     });
 
-    prevBtn.addEventListener('click', () => {
-      page = Math.max(1, page - 1);
-      buildBody();
-    });
-
-    nextBtn.addEventListener('click', () => {
-      page = page + 1;
-      buildBody();
-    });
+    prevBtn.addEventListener('click', () => { page = Math.max(1, page - 1); buildBody(); });
+    nextBtn.addEventListener('click', () => { page = page + 1; buildBody(); });
 
     insertBtn.addEventListener('click', () => {
       if (!columns.length) {
-        showToast('Primero debes cargar una tabla con columnas disponibles', false);
+        showToast('Primero carga una tabla con columnas disponibles', false);
         return;
       }
-
       insertTitle.textContent = 'Registrar nuevo producto automotriz';
       insertModal.showModal();
     });
@@ -1395,30 +1244,19 @@
     closeInsert.addEventListener('click', () => insertModal.close());
     cancelInsert.addEventListener('click', () => insertModal.close());
 
-    insertForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-
+    insertForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
       try {
         const values = {};
-
-        [...insertFields.querySelectorAll('input')].forEach(input => {
-          if (!input.disabled) {
-            values[input.name] = input.value.trim();
-          }
+        [...insertFields.querySelectorAll('input')].forEach(inp => {
+          if (!inp.disabled) values[inp.name] = inp.value.trim();
         });
-
-        const response = await fetch(`/api/table/${currentSchema}/${currentTable}`, {
+        const res    = await fetch('/api/table/' + currentSchema + '/' + currentTable, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            values
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ values })
         });
-
-        const result = await response.json();
-
+        const result = await res.json();
         if (result.inserted) {
           insertModal.close();
           showToast('Producto registrado');
@@ -1427,21 +1265,18 @@
         } else {
           showToast(result.error || 'No se pudo insertar', false);
         }
-      } catch (error) {
-        showToast('Error al insertar el producto', false);
-      }
+      } catch { showToast('Error al insertar el producto', false); }
     });
 
+    /* ════════════════════════════════════════════════
+       INICIO
+    ════════════════════════════════════════════════ */
     async function initPanel() {
       try {
         const ok = await fetchTables();
-
-        if (!ok) {
-          return;
-        }
-
+        if (!ok) return;
         await loadSelectedTable();
-      } catch (error) {
+      } catch {
         hint.textContent = 'No se pudo iniciar el panel.';
         showToast('Error al iniciar el panel', false);
       }
