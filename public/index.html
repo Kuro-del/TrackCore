@@ -1,13 +1,16 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <title>TrackCore – Inicio</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <title>TrackCore – Menú principal</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css?v=2" />
+
+  <!-- Librería Quagga para escaneo -->
   <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=10">
+
   <style>
-    /* Estilos del escáner */
+    /* Estilos del scanner (reutilizados de kardex) */
     #scannerContainer {
       width: 100%;
       max-width: 760px;
@@ -19,12 +22,14 @@
       position: relative;
       border-radius: 10px;
     }
+
     #scannerContainer video,
     #scannerContainer canvas {
       width: 100% !important;
       height: 100% !important;
       object-fit: cover;
     }
+
     .scanner-line {
       position: absolute;
       left: 8%;
@@ -35,45 +40,142 @@
       z-index: 10;
       opacity: 0.85;
     }
-    .scanner-result, .scanner-error {
+
+    .scanner-result {
       display: none;
       margin-top: 0.75rem;
       padding: 0.8rem 1rem;
       border-radius: 12px;
-      font-weight: 800;
-    }
-    .scanner-result {
       border: 1px solid #bbf7d0;
       background: #ecfdf5;
       color: #166534;
+      font-weight: 800;
     }
+
     .scanner-error {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
       border: 1px solid #fecaca;
       background: #fef2f2;
       color: #991b1b;
+      font-weight: 800;
     }
   </style>
 </head>
-<body>
+
+<body class="app">
   <header class="appbar">
     <div class="brand">
-      <strong>Pantalla Principal</strong>
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 5a2 2 0 0 1 2-2h6v4H5a2 2 0 0 1-2-2zm10-2h4a2 2 0 0 1 2 2v4h-6V3zm6 10v4a2 2 0 0 1-2 2h-4v-6h6zM11 13v6H5a2 2 0 0 1-2-2v-4h8z" />
+      </svg>
+      <strong>TrackCore</strong>
     </div>
   </header>
 
-  <main class="container">
-    <section class="card quick-search">
-      <h2>Búsqueda rápida</h2>
-      <div style="display:grid;grid-template-columns:1fr auto auto;gap:0.5rem;align-items:end;">
-        <input type="text" id="quickSearchInput" placeholder="Escribí o escaneá un código de barras" autocomplete="off">
-        <button id="searchBtn" class="btn primary">Buscar</button>
-        <button id="scanBtn" class="btn btn-light">Escanear</button>
+  <main class="menu-main">
+    <section class="menu-hero card">
+      <p class="menu-kicker">Sistema de inventario automotriz</p>
+
+      <h1 class="menu-title">
+        Bienvenido a Productos Automotrices de Nicaragua
+      </h1>
+
+      <p class="menu-subtitle">
+        Gestiona tu inventario de repuestos, lubricantes y demás productos automotrices
+        desde un solo sistema. Accede al panel principal, consulta movimientos de inventario
+        y revisa reportes de control.
+      </p>
+
+      <div class="menu-grid">
+        <a href="panel.html" class="menu-card">
+          <div class="menu-card-body">
+            <h2>Panel de productos</h2>
+            <p>
+              Consulta, registra, edita y elimina productos automotrices del inventario principal.
+              También puedes administrar códigos de barras para búsquedas rápidas.
+            </p>
+          </div>
+          <span class="menu-card-cta">Entrar al panel →</span>
+        </a>
+
+        <a href="kardex.html" class="menu-card">
+          <div class="menu-card-body">
+            <h2>Kardex de inventario</h2>
+            <p>
+              Revisa entradas, salidas y existencias de cada producto automotriz por fecha.
+            </p>
+          </div>
+          <span class="menu-card-cta">Ir a Kardex →</span>
+        </a>
+
+        <a href="reportes.html" class="menu-card">
+          <div class="menu-card-body">
+            <h2>Reportes</h2>
+            <p>
+              Visualiza resúmenes de stock, movimientos y rendimiento general del inventario.
+            </p>
+          </div>
+          <span class="menu-card-cta">Ir a reportes →</span>
+        </a>
       </div>
-      <div id="searchResult" style="margin-top:0.75rem;"></div>
+    </section>
+
+    <!-- Búsqueda rápida -->
+    <section class="card quick-search">
+      <h2 class="menu-kicker">Búsqueda rápida</h2>
+
+      <p class="menu-subtitle">
+        Realiza búsquedas rápidas de productos, movimientos o reportes dentro del sistema.
+        Para productos, puedes buscar por nombre, marca, categoría, código interno o código de barras.
+      </p>
+
+      <div class="row">
+        <div class="field field-grow">
+          <label for="globalSearch">Buscar</label>
+
+          <div class="search-field">
+            <span class="search-icon">🔍</span>
+            <input
+              id="globalSearch"
+              type="text"
+              placeholder="Buscar productos automotrices, marcas, códigos o movimientos..."
+              autocomplete="off"
+            />
+            <!-- Botón de escaneo -->
+            <button type="button" id="scanSearchBtn" class="btn btn-light" style="margin-left:5px;">
+              Escanear
+            </button>
+          </div>
+
+          <p id="searchHelp" class="muted">
+            Ejemplos: "bujías NGK", "aceite 15W40", "693235460147".
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="dataType">Tipo de búsqueda</label>
+          <div class="select-wrap">
+            <select id="dataType">
+              <option value="all">Todo</option>
+              <option value="products">Productos</option>
+              <option value="moves">Movimientos de inventario</option>
+              <option value="reports">Reportes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>&nbsp;</label>
+          <button id="searchBtn" class="btn primary">Buscar</button>
+        </div>
+      </div>
     </section>
   </main>
 
-  <!-- Modal del escáner -->
+  <!-- Modal de scanner -->
   <dialog id="scannerModal" class="modal">
     <div class="card">
       <header class="modal-header">
@@ -83,15 +185,17 @@
 
       <div class="field">
         <label for="scannerCamera">Cámara disponible</label>
-        <select id="scannerCamera">
-          <option value="">Presioná “Cargar cámaras”</option>
-        </select>
+        <div class="select-wrap">
+          <select id="scannerCamera">
+            <option value="">Presioná “Cargar cámaras”</option>
+          </select>
+        </div>
       </div>
 
-      <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
-        <button id="loadScannerCameras" class="btn btn-light">Cargar cámaras</button>
-        <button id="startScanner" class="btn primary">Iniciar escáner</button>
-        <button id="stopScanner" class="btn danger" style="display:none;">Detener cámara</button>
+      <div class="quick-actions">
+        <button type="button" class="btn btn-light" id="loadScannerCameras">Cargar cámaras</button>
+        <button type="button" class="btn primary" id="startScanner">Escanear código</button>
+        <button type="button" class="btn danger" id="stopScanner" style="display:none;">Detener cámara</button>
       </div>
 
       <div id="scannerContainer">
@@ -108,118 +212,173 @@
   </dialog>
 
   <script>
-    const quickSearchInput = document.getElementById('quickSearchInput');
-    const searchResult = document.getElementById('searchResult');
+    const dataTypeSel = document.getElementById('dataType');
+    const searchInput = document.getElementById('globalSearch');
+    const searchHelp = document.getElementById('searchHelp');
+    const searchBtn = document.getElementById('searchBtn');
 
-    const scanBtn = document.getElementById('scanBtn');
-    const scannerModal = document.getElementById('scannerModal');
-    const scannerCamera = document.getElementById('scannerCamera');
-    const scannerContainer = document.getElementById('scannerContainer');
-    const scannerResult = document.getElementById('scannerResult');
-    const scannerError = document.getElementById('scannerError');
-    const loadScannerCameras = document.getElementById('loadScannerCameras');
-    const startScanner = document.getElementById('startScanner');
-    const stopScanner = document.getElementById('stopScanner');
-    const closeScanner = document.getElementById('closeScanner');
-    const cancelScanner = document.getElementById('cancelScanner');
-
+    const scanSearchBtn = document.getElementById('scanSearchBtn');
+    let scannerTargetInput = null;
     let scannerActivo = false;
     let ultimoCodigo = null;
     let repeticiones = 0;
 
-    function hideScannerMessages() {
-      scannerResult.style.display = 'none';
-      scannerError.style.display = 'none';
-      scannerResult.textContent = '';
-      scannerError.textContent = '';
+    // Cambiar placeholder según tipo de búsqueda
+    const placeholders = {
+      all: 'Buscar productos, códigos de barras, movimientos o reportes...',
+      products: 'Buscar por código de barras, código interno, nombre, marca o categoría...',
+      moves: 'Buscar movimientos por producto, tipo o fecha...',
+      reports: 'Buscar reportes por rango, tipo o resumen...'
+    };
+
+    const helpTexts = {
+      all: 'Ejemplos: "bujías NGK", "aceite 15W40", "693235460147", "movimiento filtro de aire".',
+      products: 'Ejemplos: "693235460147", "batería 12V", "filtro de aceite", "BOSCH-102".',
+      moves: 'Ejemplos: "entrada de llantas", "salida de aceite", "movimiento 10/03/2026".',
+      reports: 'Ejemplos: "reporte de stock", "ventas del mes", "productos agotados".'
+    };
+
+    function updateSearchHints() {
+      const type = dataTypeSel.value;
+      searchInput.placeholder = placeholders[type] || placeholders.all;
+      searchHelp.textContent = helpTexts[type] || helpTexts.all;
     }
 
-    async function cargarCamaras() {
-      hideScannerMessages();
-      try {
-        const permiso = await navigator.mediaDevices.getUserMedia({video:true});
-        permiso.getTracks().forEach(track => track.stop());
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const cams = devices.filter(d=>d.kind==='videoinput');
-        scannerCamera.innerHTML = '';
-        if(cams.length===0) {
-          scannerCamera.innerHTML = '<option>No se encontraron cámaras</option>';
-          scannerError.style.display='block';
-          scannerError.textContent='No se encontró ninguna cámara.';
-          return;
-        }
-        cams.forEach((cam,i)=>{
-          const option = document.createElement('option');
-          option.value = cam.deviceId;
-          option.textContent = cam.label || 'Cámara ' + (i+1);
-          scannerCamera.appendChild(option);
-        });
-        const idx = cams.findIndex(c=>c.label.toLowerCase().includes('droidcam'));
-        scannerCamera.selectedIndex = idx>=0?idx:0;
-      } catch(e){
-        console.error(e);
-        scannerError.style.display='block';
-        scannerError.textContent='Error al acceder a la cámara. Verifica permisos.';
+    // Búsqueda normal
+    function goToSearch() {
+      const query = searchInput.value.trim();
+      const type = dataTypeSel.value;
+
+      if (!query) {
+        alert('Escribe un término para buscar.');
+        searchInput.focus();
+        return;
+      }
+
+      if (type === 'products' || type === 'all') {
+        window.location.href = `panel.html?search=${encodeURIComponent(query)}`;
+        return;
+      }
+
+      if (type === 'moves') {
+        window.location.href = `kardex.html?search=${encodeURIComponent(query)}`;
+        return;
+      }
+
+      if (type === 'reports') {
+        window.location.href = `reportes.html?search=${encodeURIComponent(query)}`;
       }
     }
 
-    function iniciarScanner(){
-      hideScannerMessages();
-      const cameraId = scannerCamera.value;
-      if(!cameraId){scannerError.textContent='Selecciona una cámara.';scannerError.style.display='block'; return;}
-      if(scannerActivo) return;
-      scannerContainer.style.display='block';
+    dataTypeSel.addEventListener('change', updateSearchHints);
+    searchBtn.addEventListener('click', goToSearch);
+    searchInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        goToSearch();
+      }
+    });
+
+    updateSearchHints();
+
+    /* ================== SCANNER ================== */
+    async function cargarCamaras() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Tu navegador no permite acceder a cámaras.');
+        return;
+      }
+
+      try {
+        const permiso = await navigator.mediaDevices.getUserMedia({ video: true });
+        permiso.getTracks().forEach(track => track.stop());
+
+        const dispositivos = await navigator.mediaDevices.enumerateDevices();
+        const camaras = dispositivos.filter(d => d.kind === 'videoinput');
+
+        const sel = document.getElementById('scannerCamera');
+        sel.innerHTML = '';
+        if (!camaras.length) {
+          sel.innerHTML = '<option value="">No se encontraron cámaras</option>';
+          return;
+        }
+        camaras.forEach((camara, i) => {
+          const option = document.createElement('option');
+          option.value = camara.deviceId;
+          option.textContent = camara.label || `Cámara ${i+1}`;
+          sel.appendChild(option);
+        });
+
+        sel.selectedIndex = 0;
+      } catch (error) {
+        console.error(error);
+        alert('Error al cargar cámaras');
+      }
+    }
+
+    function iniciarScanner() {
+      const cameraId = document.getElementById('scannerCamera').value;
+      if (!cameraId || scannerActivo) return;
+
+      const container = document.getElementById('scannerContainer');
+      container.style.display = 'block';
+
       Quagga.init({
-        inputStream:{
-          type:'LiveStream',
-          target:scannerContainer,
-          constraints:{
-            deviceId:{exact:cameraId},
-            width:{ideal:1280},
-            height:{ideal:720}
-          },
-          area:{top:'20%', right:'5%', left:'5%', bottom:'20%'}
+        inputStream: {
+          type: 'LiveStream',
+          target: container,
+          constraints: { deviceId: cameraId }
         },
-        locator:{patchSize:'medium', halfSample:false},
-        numOfWorkers:navigator.hardwareConcurrency||4,
-        decoder:{readers:['upc_reader','ean_reader','code_128_reader','code_39_reader'], multiple:false},
-        locate:true
-      },function(err){
-        if(err){console.error(err); scannerError.style.display='block'; scannerError.textContent='No se pudo iniciar el escáner'; scannerContainer.style.display='none'; return;}
+        decoder: {
+          readers: ['upc_reader', 'ean_reader', 'code_128_reader', 'code_39_reader']
+        }
+      }, function(err) {
+        if (err) { console.error(err); return; }
         Quagga.start();
         scannerActivo = true;
-        startScanner.style.display='none';
-        stopScanner.style.display='inline-block';
-        loadScannerCameras.disabled=true;
       });
+
       Quagga.offDetected(onDetected);
       Quagga.onDetected(onDetected);
     }
 
-    function onDetected(data){
-      if(!data||!data.codeResult||!data.codeResult.code) return;
-      const code = data.codeResult.code;
-      if(code===ultimoCodigo){repeticiones++;} else {ultimoCodigo=code; repeticiones=1;}
-      if(repeticiones<2) return;
-      quickSearchInput.value = code;
-      scannerResult.textContent = `Código detectado: ${code} (${data.codeResult.format})`;
-      scannerResult.style.display='block';
-      detenerScanner();
-      scannerModal.close();
+    function onDetected(result) {
+      if (!result || !result.codeResult) return;
+      const codigo = result.codeResult.code;
+
+      if (codigo === ultimoCodigo) {
+        repeticiones++;
+      } else {
+        ultimoCodigo = codigo;
+        repeticiones = 1;
+      }
+
+      if (repeticiones < 2) return;
+
+      if (scannerTargetInput) {
+        scannerTargetInput.value = codigo;
+        scannerTargetInput.dispatchEvent(new Event('input'));
+        scannerTargetInput.dispatchEvent(new Event('change'));
+
+        // Simula click en el botón buscar
+        searchBtn.click();
+      }
+
+      Quagga.stop();
+      scannerActivo = false;
+      document.getElementById('scannerContainer').style.display = 'none';
+      document.getElementById('scannerModal').close();
     }
 
-    function detenerScanner(){
-      if(!scannerActivo) return;
-      try{Quagga.stop();scannerActivo=false;scannerContainer.style.display='none';startScanner.style.display='inline-block';stopScanner.style.display='none';loadScannerCameras.disabled=false;ultimoCodigo=null;repeticiones=0;} catch(e){console.error(e); scannerError.style.display='block'; scannerError.textContent='Error al detener la cámara';}
-    }
-
-    scanBtn.addEventListener('click',()=>scannerModal.showModal());
-    loadScannerCameras.addEventListener('click',cargarCamaras);
-    startScanner.addEventListener('click',iniciarScanner);
-    stopScanner.addEventListener('click',detenerScanner);
-    closeScanner.addEventListener('click',()=>{detenerScanner();scannerModal.close();});
-    cancelScanner.addEventListener('click',()=>{detenerScanner();scannerModal.close();});
-
+    // Botón escanear búsqueda rápida
+    scanSearchBtn.addEventListener('click', async () => {
+      scannerTargetInput = searchInput;
+      document.getElementById('scannerModal').showModal();
+      await cargarCamaras();
+    });
+    document.getElementById('loadScannerCameras').addEventListener('click', cargarCamaras);
+    document.getElementById('startScanner').addEventListener('click', iniciarScanner);
+    document.getElementById('stopScanner').addEventListener('click', () => { Quagga.stop(); scannerActivo=false; });
+    document.getElementById('closeScanner').addEventListener('click', () => document.getElementById('scannerModal').close());
+    document.getElementById('cancelScanner').addEventListener('click', () => document.getElementById('scannerModal').close());
   </script>
 </body>
 </html>
