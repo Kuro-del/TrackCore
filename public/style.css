@@ -54,6 +54,155 @@
     Roboto, Arial, "Noto Sans", sans-serif;
 }
 
+/* ================== RESET ================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body,
+.app {
+  margin: 0;
+  font-family: var(--fontStack);
+  background:
+    radial-gradient(circle at top left, rgba(111, 74, 103, 0.12), transparent 28rem),
+    radial-gradient(circle at top right, rgba(14, 155, 151, 0.08), transparent 22rem),
+    linear-gradient(180deg, var(--bg), var(--bg-alt));
+  color: var(--text);
+}
+
+/* ================== APPBAR ================== */
+
+.appbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--header-bg);
+  box-shadow: var(--shadow-md);
+}
+
+/* ================== MODAL SCANNER ================== */
+
+#scannerContainer {
+  width: 100%;
+  max-width: 760px;
+  height: 430px;
+  margin-top: 1rem;
+  background: #000;
+  display: none;
+  overflow: hidden;
+  position: relative;
+  border-radius: 10px;
+}
+
+#scannerContainer video,
+#scannerContainer canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+}
+
+.scanner-line {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 50%;
+  height: 3px;
+  background: #dc2626;
+  z-index: 10;
+  opacity: 0.85;
+}
+
+.scanner-result {
+  display: none;
+  margin-top: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #bbf7d0;
+  background: #ecfdf5;
+  color: #166534;
+  font-weight: 700;
+}
+
+.scanner-error {
+  display: none;
+  margin-top: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+  font-weight: 700;
+}
+
+/* ================== PALETA & THEME ================== */
+
+:root {
+  --bg: #f3edf3;
+  --bg-alt: #eadfe9;
+  --surface: #fbf7fb;
+  --card: #f9f4f9;
+
+  --text: #2f2430;
+  --muted: #6f6270;
+
+  --primary: #6f4a67;
+  --primary-hover: #5d3c56;
+  --primary-soft: #efe4ed;
+  --primary-ink: #ffffff;
+
+  --secondary: #8b7387;
+  --secondary-soft: #f1e8ef;
+
+  --accent: #0e9b97;
+  --accent-hover: #0a8480;
+  --accent-soft: #dff5f4;
+  --accent-ink: #ffffff;
+
+  --success: #2d8c72;
+  --success-soft: #e3f4ee;
+
+  --warning: #c2882c;
+  --warning-soft: #fff5e3;
+
+  --danger: #b34a52;
+  --danger-soft: #fdecee;
+
+  --info: #4a7fa8;
+  --info-soft: #e8f1f8;
+
+  --border: #d8c7d5;
+  --border-strong: #beaabc;
+  --ring: rgba(111, 74, 103, 0.18);
+
+  --row-alt: #f6eef5;
+  --row-hover: #f0e3ee;
+
+  --header-bg: linear-gradient(135deg, #6b4864, #7a5470);
+  --tab-bg: #ede3ec;
+  --tab-active: #f8f3f8;
+  --input-bg: #fcf8fc;
+
+  --shadow-sm: 0 2px 8px rgba(67, 34, 60, 0.06);
+  --shadow-md: 0 10px 24px rgba(67, 34, 60, 0.10);
+  --shadow-lg: 0 18px 40px rgba(67, 34, 60, 0.14);
+
+  --fontStack: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Inter",
+    Roboto, Arial, "Noto Sans", sans-serif;
+}
+
 :root[data-theme="dark"] {
   --bg: #241a24;
   --bg-alt: #2d2130;
