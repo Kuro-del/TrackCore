@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>TrackCore – Recuperar contraseña</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css?v=13" />
+
+  <style>
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.2rem;
+    }
+
+    .recover-shell {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .recover-card {
+      padding: 2rem;
+    }
+
+    .recover-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-bottom: 1.3rem;
+      color: var(--primary);
+    }
+
+    .recover-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 15px;
+      background: var(--header-bg);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      box-shadow: var(--shadow-md);
+    }
+
+    .recover-brand strong {
+      display: block;
+      font-size: 1.15rem;
+      color: var(--text);
+    }
+
+    .recover-brand span {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+
+    .recover-title {
+      margin: 0 0 0.35rem;
+      font-size: 1.55rem;
+      color: var(--text);
+    }
+
+    .recover-subtitle {
+      margin: 0 0 1.4rem;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.92rem;
+    }
+
+    .recover-steps {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .step-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0.8rem;
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .step-card.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .step-card strong {
+      display: block;
+      color: var(--primary);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.2rem;
+    }
+
+    .step-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+
+    .recover-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .security-question-box {
+      padding: 1rem;
+      border-radius: 14px;
+      background: var(--primary-soft);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .security-question-box span {
+      display: block;
+      color: var(--primary);
+      font-size: 0.76rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.4rem;
+    }
+
+    .security-question-box strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    .recover-message {
+      display: none;
+      padding: 0.8rem 0.9rem;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .recover-message.error {
+      display: block;
+      background: var(--danger-soft);
+      color: var(--danger);
+      border: 1px solid #efbcc1;
+    }
+
+    .recover-message.ok {
+      display: block;
+      background: var(--success-soft);
+      color: var(--success);
+      border: 1px solid #b8dfcf;
+    }
+
+    .recover-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.25rem;
+    }
+
+    .recover-actions .btn {
+      width: 100%;
+    }
+
+    .back-link {
+      display: inline-flex;
+      justify-content: center;
+      text-align: center;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .password-wrap {
+      position: relative;
+    }
+
+    .password-wrap input {
+      padding-right: 4.3rem;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 0.45rem;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      color: var(--primary);
+      font-weight: 800;
+      cursor: pointer;
+      padding: 0.35rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 480px) {
+      .recover-card {
+        padding: 1.4rem;
+      }
+
+      .recover-title {
+        font-size: 1.35rem;
+      }
+
+      .recover-steps {
+        grid-template-columns: 1fr;
+      }
+
+
+.password-wrap input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 4.6rem;
+  min-height: 46px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.password-wrap input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.toggle-password {
+  position: absolute;
+  right: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0.25rem 0.35rem;
+  font-size: 0.9rem;
+}
+    }
+  </style>
+</head>
+
+<body>
+  <main class="recover-shell">
+    <section class="card recover-card">
+      <div class="recover-brand">
+        <div class="recover-logo" aria-hidden="true">
+          <svg width="23" height="23" viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M3 5a2 2 0 0 1 2-2h6v4H5a2 2 0 0 1-2-2zm10-2h4a2 2 0 0 1 2 2v4h-6V3zm6 10v4a2 2 0 0 1-2 2h-4v-6h6zM11 13v6H5a2 2 0 0 1-2-2v-4h8z"
+            />
+          </svg>
+        </div>
+
+        <div>
+          <strong>TrackCore</strong>
+          <span>Recuperación de acceso</span>
+        </div>
+      </div>
+
+      <h1 class="recover-title">Recuperar contraseña</h1>
+
+      <p class="recover-subtitle">
+        Ingresa tu usuario o correo, responde tu pregunta de seguridad y crea una nueva contraseña.
+      </p>
+
+      <div class="recover-steps">
+        <div id="stepUser" class="step-card active">
+          <strong>Paso 1</strong>
+          <span>Buscar usuario y mostrar pregunta.</span>
+        </div>
+
+        <div id="stepReset" class="step-card">
+          <strong>Paso 2</strong>
+          <span>Responder y cambiar contraseña.</span>
+        </div>
+      </div>
+
+      <form id="lookupForm" class="recover-form">
+        <div class="field">
+          <label for="identifierLookup">Usuario o correo</label>
+          <input
+            id="identifierLookup"
+            name="identifierLookup"
+            type="text"
+            placeholder="Ej: admin o correo@gmail.com"
+            autocomplete="username"
+            required
+          />
+        </div>
+
+        <div id="lookupMessage" class="recover-message"></div>
+
+        <div class="recover-actions">
+          <button id="lookupBtn" type="submit" class="btn primary">
+            Continuar
+          </button>
+
+          <a href="login.html" class="back-link">
+            Volver al inicio de sesión
+          </a>
+        </div>
+      </form>
+
+      <form id="resetForm" class="recover-form hidden">
+        <input type="hidden" id="identifierReset" />
+
+        <div class="security-question-box">
+          <span>Pregunta de seguridad</span>
+          <strong id="securityQuestion">Cargando pregunta...</strong>
+        </div>
+
+        <div class="field">
+          <label for="securityAnswer">Respuesta</label>
+          <input
+            id="securityAnswer"
+            name="securityAnswer"
+            type="text"
+            placeholder="Ingresa tu palabra de recuperación"
+            autocomplete="off"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="newPassword">Nueva contraseña</label>
+
+          <div class="password-wrap">
+            <input
+              id="newPassword"
+              name="newPassword"
+              type="password"
+              placeholder="Mínimo 6 caracteres"
+              autocomplete="new-password"
+              required
+            />
+
+            <button
+              type="button"
+              id="togglePassword"
+              class="toggle-password"
+            >
+              Ver
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="confirmPassword">Confirmar contraseña</label>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            placeholder="Repite la nueva contraseña"
+            autocomplete="new-password"
+            required
+          />
+        </div>
+
+        <div id="resetMessage" class="recover-message"></div>
+
+        <div class="recover-actions">
+          <button id="resetBtn" type="submit" class="btn primary">
+            Cambiar contraseña
+          </button>
+
+          <button id="backToLookupBtn" type="button" class="btn btn-light">
+            Cambiar usuario
+          </button>
+
+          <a href="login.html" class="back-link">
+            Volver al inicio de sesión
+          </a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const lookupForm = document.getElementById('lookupForm');
+    const resetForm = document.getElementById('resetForm');
+
+    const identifierLookup = document.getElementById('identifierLookup');
+    const identifierReset = document.getElementById('identifierReset');
+
+    const securityQuestion = document.getElementById('securityQuestion');
+    const securityAnswer = document.getElementById('securityAnswer');
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+
+    const lookupMessage = document.getElementById('lookupMessage');
+    const resetMessage = document.getElementById('resetMessage');
+
+    const lookupBtn = document.getElementById('lookupBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const backToLookupBtn = document.getElementById('backToLookupBtn');
+    const togglePassword = document.getElementById('togglePassword');
+
+    const stepUser = document.getElementById('stepUser');
+    const stepReset = document.getElementById('stepReset');
+
+    function showMessage(element, message, ok = false) {
+      element.textContent = message;
+      element.className = 'recover-message ' + (ok ? 'ok' : 'error');
+    }
+
+    function clearMessage(element) {
+      element.textContent = '';
+      element.className = 'recover-message';
+    }
+
+    function goToResetStep(identifier, question) {
+      lookupForm.classList.add('hidden');
+      resetForm.classList.remove('hidden');
+
+      stepUser.classList.remove('active');
+      stepReset.classList.add('active');
+
+      identifierReset.value = identifier;
+      securityQuestion.textContent = question || 'Pregunta de seguridad no disponible';
+
+      securityAnswer.value = '';
+      newPassword.value = '';
+      confirmPassword.value = '';
+
+      clearMessage(resetMessage);
+
+      securityAnswer.focus();
+    }
+
+    function goToLookupStep() {
+      resetForm.classList.add('hidden');
+      lookupForm.classList.remove('hidden');
+
+      stepReset.classList.remove('active');
+      stepUser.classList.add('active');
+
+      clearMessage(lookupMessage);
+      clearMessage(resetMessage);
+
+      identifierLookup.focus();
+    }
+
+    lookupForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      clearMessage(lookupMessage);
+
+      const identifier = identifierLookup.value.trim();
+
+      if (!identifier) {
+        showMessage(lookupMessage, 'Ingresa tu usuario o correo.');
+        return;
+      }
+
+      lookupBtn.disabled = true;
+      lookupBtn.textContent = 'Buscando...';
+
+      try {
+        const response = await fetch('/api/auth/security-question', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            identifier
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'No se pudo obtener la pregunta de seguridad.');
+        }
+
+        goToResetStep(identifier, data.pregunta);
+      } catch (error) {
+        showMessage(lookupMessage, error.message || 'No se pudo obtener la pregunta de seguridad.');
+      } finally {
+        lookupBtn.disabled = false;
+        lookupBtn.textContent = 'Continuar';
+      }
+    });
+
+    resetForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      clearMessage(resetMessage);
+
+      const identifier = identifierReset.value.trim();
+      const answer = securityAnswer.value.trim();
+      const pass = newPassword.value;
+      const confirm = confirmPassword.value;
+
+      if (!identifier || !answer || !pass || !confirm) {
+        showMessage(resetMessage, 'Completa todos los campos.');
+        return;
+      }
+
+      if (pass.length < 6) {
+        showMessage(resetMessage, 'La nueva contraseña debe tener al menos 6 caracteres.');
+        return;
+      }
+
+      if (pass !== confirm) {
+        showMessage(resetMessage, 'Las contraseñas no coinciden.');
+        return;
+      }
+
+      resetBtn.disabled = true;
+      resetBtn.textContent = 'Cambiando contraseña...';
+
+      try {
+        const response = await fetch('/api/auth/reset-password-security', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            identifier,
+            answer,
+            newPassword: pass
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'No se pudo cambiar la contraseña.');
+        }
+
+        showMessage(resetMessage, data.message || 'Contraseña actualizada correctamente.', true);
+
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1500);
+      } catch (error) {
+        showMessage(resetMessage, error.message || 'No se pudo cambiar la contraseña.');
+      } finally {
+        resetBtn.disabled = false;
+        resetBtn.textContent = 'Cambiar contraseña';
+      }
+    });
+
+    backToLookupBtn.addEventListener('click', goToLookupStep);
+
+    togglePassword.addEventListener('click', () => {
+      const isPassword = newPassword.type === 'password';
+
+      newPassword.type = isPassword ? 'text' : 'password';
+      confirmPassword.type = isPassword ? 'text' : 'password';
+      togglePassword.textContent = isPassword ? 'Ocultar' : 'Ver';
+    });
+  </script>
+</body>
+</html>

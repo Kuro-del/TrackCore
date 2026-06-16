@@ -1,13 +1,519 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <title>TrackCore – Inicio</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <title>TrackCore – Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css?v=11" />
+
+  <!-- Librería Quagga para escaneo -->
   <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
-  <link rel="stylesheet" href="style.css?v=10">
+
   <style>
-    /* Estilos del escáner */
+    .dashboard-main {
+      max-width: 1220px;
+      margin: 1.7rem auto 3rem;
+      padding: 0 1.5rem 3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .dashboard-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
+      gap: 1.2rem;
+      align-items: stretch;
+    }
+
+    .dashboard-welcome {
+      position: relative;
+      overflow: hidden;
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .dashboard-welcome::after {
+      content: "";
+      position: absolute;
+      right: -4rem;
+      top: -4rem;
+      width: 15rem;
+      height: 15rem;
+      border-radius: 999px;
+      background: rgba(14, 155, 151, 0.13);
+      pointer-events: none;
+    }
+
+    .dashboard-kicker {
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin: 0 0 0.55rem;
+      font-weight: 900;
+    }
+
+    .dashboard-title {
+      margin: 0 0 0.65rem;
+      font-size: 2.05rem;
+      line-height: 1.15;
+      color: var(--text);
+      max-width: 46rem;
+    }
+
+    .dashboard-subtitle {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 48rem;
+      font-size: 0.95rem;
+    }
+
+    .dashboard-hero-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1.35rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .dashboard-status-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+      background:
+        linear-gradient(180deg, rgba(14, 155, 151, 0.12), rgba(255, 255, 255, 0.14)),
+        var(--card);
+    }
+
+    .status-ring {
+      width: 110px;
+      height: 110px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto;
+      background:
+        conic-gradient(var(--accent) var(--healthPercent, 0%), #eadde8 0);
+      position: relative;
+    }
+
+    .status-ring::after {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border-radius: 999px;
+      background: var(--card);
+    }
+
+    .status-ring strong {
+      position: relative;
+      z-index: 1;
+      font-size: 1.55rem;
+      color: var(--accent);
+    }
+
+    .status-ring-info {
+      text-align: center;
+    }
+
+    .status-ring-info h2 {
+      margin: 0 0 0.35rem;
+      color: var(--primary);
+      font-size: 1.05rem;
+    }
+
+    .status-ring-info p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .dashboard-stat {
+      padding: 1rem 1.05rem;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.12)),
+        #f6eef5;
+    }
+
+    .dashboard-stat span {
+      display: block;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--primary);
+      font-weight: 900;
+      margin-bottom: 0.35rem;
+    }
+
+    .dashboard-stat strong {
+      display: block;
+      color: var(--accent);
+      font-size: 1.55rem;
+      line-height: 1.1;
+    }
+
+    .dashboard-stat small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-top: 0.35rem;
+      line-height: 1.35;
+    }
+
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(330px, 0.85fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-header h2 {
+      margin: 0 0 0.25rem;
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+
+    .section-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .dashboard-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .dashboard-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+
+    .dashboard-loading::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--accent);
+      animation: pulseDot 900ms ease-in-out infinite alternate;
+    }
+
+    @keyframes pulseDot {
+      from {
+        opacity: 0.35;
+        transform: scale(0.85);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+    }
+
+    .chart-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: 125px minmax(0, 1fr) 80px;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .chart-label {
+      color: var(--text);
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+
+    .chart-track {
+      height: 14px;
+      border-radius: 999px;
+      background: #eadde8;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .chart-fill {
+      height: 100%;
+      border-radius: inherit;
+      width: 0%;
+      transition: width 400ms ease;
+    }
+
+    .fill-ok {
+      background: var(--success);
+    }
+
+    .fill-low {
+      background: var(--warning);
+    }
+
+    .fill-out {
+      background: var(--danger);
+    }
+
+    .fill-in {
+      background: var(--success);
+    }
+
+    .fill-out-move {
+      background: var(--danger);
+    }
+
+    .fill-incidence {
+      background: var(--warning);
+    }
+
+    .chart-value {
+      color: var(--muted);
+      font-size: 0.84rem;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .alert-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+    }
+
+    .alert-card {
+      padding: 0.9rem 1rem;
+      border-radius: 15px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .alert-card strong {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .alert-card span {
+      font-size: 1.25rem;
+      color: var(--accent);
+    }
+
+    .alert-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .alert-danger {
+      background: var(--danger-soft);
+      border-color: #efbcc1;
+    }
+
+    .alert-danger span {
+      color: var(--danger);
+    }
+
+    .alert-warning {
+      background: var(--warning-soft);
+      border-color: #f1d6a9;
+    }
+
+    .alert-warning span {
+      color: var(--warning);
+    }
+
+    .alert-success {
+      background: var(--success-soft);
+      border-color: #b8dfcf;
+    }
+
+    .alert-success span {
+      color: var(--success);
+    }
+
+    .critical-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .critical-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.8rem;
+      align-items: center;
+      padding: 0.85rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .critical-item strong {
+      display: block;
+      color: var(--text);
+      font-size: 0.9rem;
+      margin-bottom: 0.2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .critical-item small {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .stock-pill {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 80px;
+      padding: 0.35rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .stock-pill.out {
+      color: var(--danger);
+      background: var(--danger-soft);
+      border: 1px solid #efbcc1;
+    }
+
+    .stock-pill.low {
+      color: var(--warning);
+      background: var(--warning-soft);
+      border: 1px solid #f1d6a9;
+    }
+
+    .empty-dashboard {
+      padding: 1rem;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.24);
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .quick-search-dashboard {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.45fr) auto;
+      gap: 1rem;
+      align-items: end;
+    }
+
+    .search-field .btn {
+      flex: 0 0 auto;
+    }
+
+    .quick-links-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .quick-link-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 170px;
+      padding: 1.2rem;
+      border-radius: 17px;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.13)),
+        #f6eef5;
+      color: var(--text);
+      text-decoration: none;
+      overflow: hidden;
+      transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+    }
+
+    .quick-link-card:hover {
+      transform: translateY(-2px);
+      border-color: #b99fb4;
+      box-shadow: var(--shadow-md);
+    }
+
+    .quick-link-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 900;
+      margin-bottom: 0.9rem;
+    }
+
+    .quick-link-card h3 {
+      margin: 0 0 0.45rem;
+      font-size: 1.02rem;
+      color: var(--text);
+    }
+
+    .quick-link-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .quick-link-cta {
+      display: block;
+      margin-top: 1rem;
+      color: var(--accent);
+      font-weight: 900;
+      font-size: 0.88rem;
+    }
+
     #scannerContainer {
       width: 100%;
       max-width: 760px;
@@ -19,61 +525,347 @@
       position: relative;
       border-radius: 10px;
     }
+
     #scannerContainer video,
     #scannerContainer canvas {
       width: 100% !important;
       height: 100% !important;
       object-fit: cover;
     }
+
     .scanner-line {
       position: absolute;
       left: 8%;
       right: 8%;
       top: 50%;
       height: 3px;
-      background: #dc2626;
+      background: var(--accent);
       z-index: 10;
-      opacity: 0.85;
+      opacity: 0.9;
     }
-    .scanner-result, .scanner-error {
+
+    .scanner-result {
       display: none;
       margin-top: 0.75rem;
       padding: 0.8rem 1rem;
       border-radius: 12px;
-      font-weight: 800;
-    }
-    .scanner-result {
       border: 1px solid #bbf7d0;
       background: #ecfdf5;
       color: #166534;
+      font-weight: 800;
     }
+
     .scanner-error {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
       border: 1px solid #fecaca;
       background: #fef2f2;
       color: #991b1b;
+      font-weight: 800;
+    }
+
+    @media (max-width: 1050px) {
+      .dashboard-hero,
+      .dashboard-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .quick-search-dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .quick-links-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .dashboard-main {
+        margin-top: 1.1rem;
+        padding: 0 1rem 2rem;
+      }
+
+      .dashboard-title {
+        font-size: 1.55rem;
+      }
+
+      .stats-grid,
+      .alert-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-row {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+      }
+
+      .chart-value {
+        text-align: left;
+      }
+
+      #scannerContainer {
+        height: 320px;
+      }
     }
   </style>
 </head>
-<body>
+
+<body class="app">
   <header class="appbar">
     <div class="brand">
-      <strong>Pantalla Principal</strong>
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 5a2 2 0 0 1 2-2h6v4H5a2 2 0 0 1-2-2zm10-2h4a2 2 0 0 1 2 2v4h-6V3zm6 10v4a2 2 0 0 1-2 2h-4v-6h6zM11 13v6H5a2 2 0 0 1-2-2v-4h8z" />
+      </svg>
+      <strong>TrackCore</strong>
     </div>
+
+    <div class="actions"></div>
   </header>
 
-  <main class="container">
-    <section class="card quick-search">
-      <h2>Búsqueda rápida</h2>
-      <div style="display:grid;grid-template-columns:1fr auto auto;gap:0.5rem;align-items:end;">
-        <input type="text" id="quickSearchInput" placeholder="Escribí o escaneá un código de barras" autocomplete="off">
-        <button id="searchBtn" class="btn primary">Buscar</button>
-        <button id="scanBtn" class="btn btn-light">Escanear</button>
+  <main class="dashboard-main">
+    <section class="dashboard-hero">
+      <article class="card dashboard-welcome">
+        <div>
+          <p class="dashboard-kicker">Dashboard principal</p>
+
+          <h1 class="dashboard-title">
+            Control rápido del inventario automotriz
+          </h1>
+
+          <p class="dashboard-subtitle">
+            Visualiza el estado general del inventario, detecta productos agotados,
+            revisa alertas de stock bajo y accede rápidamente a los módulos principales
+            de TrackCore.
+          </p>
+        </div>
+
+        <div class="dashboard-hero-actions">
+          <a href="panel.html" class="btn primary">Gestionar productos</a>
+          <a href="kardex.html" class="btn btn-light">Registrar movimiento</a>
+          <a href="reportes.html" class="btn ghost">Ver reportes</a>
+          <button type="button" id="refreshDashboardBtn" class="btn ghost">Actualizar dashboard</button>
+        </div>
+      </article>
+
+      <aside class="card dashboard-status-card">
+        <div class="status-ring" id="statusRing">
+          <strong id="healthPercent">0%</strong>
+        </div>
+
+        <div class="status-ring-info">
+          <h2>Salud del inventario</h2>
+          <p id="healthText">
+            Cargando estado general del inventario...
+          </p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="stats-grid">
+      <div class="dashboard-stat">
+        <span>Productos registrados</span>
+        <strong id="statProducts">0</strong>
+        <small>Total detectado en la tabla de productos.</small>
       </div>
-      <div id="searchResult" style="margin-top:0.75rem;"></div>
+
+      <div class="dashboard-stat">
+        <span>Unidades disponibles</span>
+        <strong id="statStock">0</strong>
+        <small>Suma general de existencias actuales.</small>
+      </div>
+
+      <div class="dashboard-stat">
+        <span>Stock bajo</span>
+        <strong id="statLowStock">0</strong>
+        <small>Productos cerca del nivel mínimo recomendado.</small>
+      </div>
+
+      <div class="dashboard-stat">
+        <span>Agotados</span>
+        <strong id="statOutStock">0</strong>
+        <small>Productos con existencia igual o menor que cero.</small>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-header">
+        <div>
+          <h2>Búsqueda rápida</h2>
+          <p>
+            Busca productos, movimientos o reportes por nombre, marca, categoría,
+            código interno o código de barras.
+          </p>
+        </div>
+      </div>
+
+      <div class="quick-search-dashboard">
+        <div class="field">
+          <label for="globalSearch">Buscar</label>
+
+          <div class="search-field">
+            <span class="search-icon">🔍</span>
+            <input
+              id="globalSearch"
+              type="text"
+              placeholder="Buscar productos automotrices, marcas, códigos o movimientos..."
+              autocomplete="off"
+            />
+            <button type="button" id="scanSearchBtn" class="btn btn-light">
+              Escanear
+            </button>
+          </div>
+
+          <p id="searchHelp" class="muted">
+            Ejemplos: "bujías NGK", "aceite 15W40", "693235460147".
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="dataType">Tipo de búsqueda</label>
+          <div class="select-wrap">
+            <select id="dataType">
+              <option value="all">Todo</option>
+              <option value="products">Productos</option>
+              <option value="moves">Movimientos de inventario</option>
+              <option value="reports">Reportes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>&nbsp;</label>
+          <button id="searchBtn" class="btn primary">Buscar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-layout">
+      <div class="charts-grid">
+        <article class="card">
+          <div class="section-header">
+            <div>
+              <h2>Distribución de stock</h2>
+              <p>Resumen visual de productos disponibles, bajos y agotados.</p>
+            </div>
+
+            <div class="dashboard-meta">
+              <span id="productsTableInfo" class="dashboard-loading">Cargando</span>
+            </div>
+          </div>
+
+          <div class="chart-list" id="stockChart">
+            <div class="empty-dashboard">Cargando gráfico de inventario...</div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="section-header">
+            <div>
+              <h2>Movimientos recientes</h2>
+              <p>Entradas, salidas e incidencias registradas en Kardex.</p>
+            </div>
+
+            <div class="dashboard-meta">
+              <span id="movementsInfo" class="muted">Cargando...</span>
+            </div>
+          </div>
+
+          <div class="chart-list" id="movementChart">
+            <div class="empty-dashboard">Cargando movimientos recientes...</div>
+          </div>
+        </article>
+      </div>
+
+      <aside class="card">
+        <div class="section-header">
+          <div>
+            <h2>Alertas inteligentes</h2>
+            <p>Productos que requieren revisión inmediata.</p>
+          </div>
+        </div>
+
+        <div class="alert-grid">
+          <div class="alert-card alert-danger">
+            <strong>Agotados <span id="alertOutStock">0</span></strong>
+            <p>Productos sin existencia disponible para venta o uso.</p>
+          </div>
+
+          <div class="alert-card alert-warning">
+            <strong>Stock bajo <span id="alertLowStock">0</span></strong>
+            <p>Productos cerca del mínimo recomendado de reposición.</p>
+          </div>
+
+          <div class="alert-card alert-success">
+            <strong>Estables <span id="alertOkStock">0</span></strong>
+            <p>Productos con inventario suficiente por el momento.</p>
+          </div>
+
+          <div class="alert-card">
+            <strong>Valor estimado <span id="alertInventoryValue">C$ 0.00</span></strong>
+            <p>Estimación basada en stock actual por precio unitario.</p>
+          </div>
+        </div>
+
+        <div class="critical-list" id="criticalList">
+          <div class="empty-dashboard">
+            Cargando productos críticos...
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="card">
+      <div class="section-header">
+        <div>
+          <h2>Accesos rápidos</h2>
+          <p>Dirígete a los módulos principales del sistema.</p>
+        </div>
+      </div>
+
+      <div class="quick-links-grid">
+        <a href="panel.html" class="quick-link-card">
+          <div>
+            <div class="quick-link-icon">PR</div>
+            <h3>Panel de productos</h3>
+            <p>
+              Consulta, registra, edita y elimina productos del inventario principal.
+            </p>
+          </div>
+          <span class="quick-link-cta">Entrar al panel →</span>
+        </a>
+
+        <a href="kardex.html" class="quick-link-card">
+          <div>
+            <div class="quick-link-icon">KX</div>
+            <h3>Kardex de inventario</h3>
+            <p>
+              Registra entradas, salidas, devoluciones, daños, ajustes e incidencias.
+            </p>
+          </div>
+          <span class="quick-link-cta">Ir a Kardex →</span>
+        </a>
+
+        <a href="reportes.html" class="quick-link-card">
+          <div>
+            <div class="quick-link-icon">RP</div>
+            <h3>Reportes</h3>
+            <p>
+              Visualiza resúmenes, movimientos, incidencias e impacto económico.
+            </p>
+          </div>
+          <span class="quick-link-cta">Ver reportes →</span>
+        </a>
+      </div>
     </section>
   </main>
 
-  <!-- Modal del escáner -->
+  <!-- Modal de scanner -->
   <dialog id="scannerModal" class="modal">
     <div class="card">
       <header class="modal-header">
@@ -83,15 +875,17 @@
 
       <div class="field">
         <label for="scannerCamera">Cámara disponible</label>
-        <select id="scannerCamera">
-          <option value="">Presioná “Cargar cámaras”</option>
-        </select>
+        <div class="select-wrap">
+          <select id="scannerCamera">
+            <option value="">Presioná “Cargar cámaras”</option>
+          </select>
+        </div>
       </div>
 
-      <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
-        <button id="loadScannerCameras" class="btn btn-light">Cargar cámaras</button>
-        <button id="startScanner" class="btn primary">Iniciar escáner</button>
-        <button id="stopScanner" class="btn danger" style="display:none;">Detener cámara</button>
+      <div class="quick-actions">
+        <button type="button" class="btn btn-light" id="loadScannerCameras">Cargar cámaras</button>
+        <button type="button" class="btn primary" id="startScanner">Escanear código</button>
+        <button type="button" class="btn danger" id="stopScanner" style="display:none;">Detener cámara</button>
       </div>
 
       <div id="scannerContainer">
@@ -108,118 +902,828 @@
   </dialog>
 
   <script>
-    const quickSearchInput = document.getElementById('quickSearchInput');
-    const searchResult = document.getElementById('searchResult');
+    const dataTypeSel = document.getElementById('dataType');
+    const searchInput = document.getElementById('globalSearch');
+    const searchHelp = document.getElementById('searchHelp');
+    const searchBtn = document.getElementById('searchBtn');
+    const scanSearchBtn = document.getElementById('scanSearchBtn');
+    const refreshDashboardBtn = document.getElementById('refreshDashboardBtn');
 
-    const scanBtn = document.getElementById('scanBtn');
+    const statProducts = document.getElementById('statProducts');
+    const statStock = document.getElementById('statStock');
+    const statLowStock = document.getElementById('statLowStock');
+    const statOutStock = document.getElementById('statOutStock');
+
+    const alertOutStock = document.getElementById('alertOutStock');
+    const alertLowStock = document.getElementById('alertLowStock');
+    const alertOkStock = document.getElementById('alertOkStock');
+    const alertInventoryValue = document.getElementById('alertInventoryValue');
+
+    const productsTableInfo = document.getElementById('productsTableInfo');
+    const movementsInfo = document.getElementById('movementsInfo');
+    const stockChart = document.getElementById('stockChart');
+    const movementChart = document.getElementById('movementChart');
+    const criticalList = document.getElementById('criticalList');
+
+    const statusRing = document.getElementById('statusRing');
+    const healthPercent = document.getElementById('healthPercent');
+    const healthText = document.getElementById('healthText');
+
     const scannerModal = document.getElementById('scannerModal');
     const scannerCamera = document.getElementById('scannerCamera');
     const scannerContainer = document.getElementById('scannerContainer');
     const scannerResult = document.getElementById('scannerResult');
     const scannerError = document.getElementById('scannerError');
-    const loadScannerCameras = document.getElementById('loadScannerCameras');
-    const startScanner = document.getElementById('startScanner');
-    const stopScanner = document.getElementById('stopScanner');
-    const closeScanner = document.getElementById('closeScanner');
-    const cancelScanner = document.getElementById('cancelScanner');
 
+    let productRows = [];
+    let productColumns = [];
+    let productTableSelected = null;
+    let movements = [];
+
+    let scannerTargetInput = null;
     let scannerActivo = false;
     let ultimoCodigo = null;
     let repeticiones = 0;
+    let refreshingDashboard = false;
+
+    const placeholders = {
+      all: 'Buscar productos, códigos de barras, movimientos o reportes...',
+      products: 'Buscar por código de barras, código interno, nombre, marca o categoría...',
+      moves: 'Buscar movimientos por producto, tipo o fecha...',
+      reports: 'Buscar reportes por rango, tipo o resumen...'
+    };
+
+    const helpTexts = {
+      all: 'Ejemplos: "bujías NGK", "aceite 15W40", "693235460147", "movimiento filtro de aire".',
+      products: 'Ejemplos: "693235460147", "batería 12V", "filtro de aceite", "BOSCH-102".',
+      moves: 'Ejemplos: "entrada de llantas", "salida de aceite", "movimiento 10/03/2026".',
+      reports: 'Ejemplos: "reporte de stock", "ventas del mes", "productos agotados".'
+    };
+
+    const incidentTypes = new Set([
+      'entrada_devolucion_cliente',
+      'salida_devolucion_proveedor',
+      'salida_danio',
+      'salida_vencimiento',
+      'salida_perdida',
+      'salida_garantia',
+      'cuarentena'
+    ]);
+
+    function normalizeText(value) {
+      return (value ?? '')
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function normalizeColumnName(value) {
+      return normalizeText(value).replace(/[\s_]/g, '');
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function safeNumber(value) {
+      if (value === null || value === undefined || value === '') return 0;
+
+      const cleaned = value.toString().replace(/[^0-9.-]/g, '');
+      const number = Number(cleaned);
+
+      return Number.isFinite(number) ? number : 0;
+    }
+
+    function formatMoney(value) {
+      const number = Number(value) || 0;
+
+      return 'C$ ' + number.toLocaleString('es-NI', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function labelFor(schema, table) {
+      return schema.toLowerCase() === 'dbo' ? table : `${schema}.${table}`;
+    }
+
+    function updateSearchHints() {
+      const type = dataTypeSel.value;
+
+      searchInput.placeholder = placeholders[type] || placeholders.all;
+      searchHelp.textContent = helpTexts[type] || helpTexts.all;
+    }
+
+    function goToSearch() {
+      const query = searchInput.value.trim();
+      const type = dataTypeSel.value;
+
+      if (!query) {
+        alert('Escribe un término para buscar.');
+        searchInput.focus();
+        return;
+      }
+
+      if (type === 'products' || type === 'all') {
+        window.location.href = `panel.html?search=${encodeURIComponent(query)}`;
+        return;
+      }
+
+      if (type === 'moves') {
+        window.location.href = `kardex.html?search=${encodeURIComponent(query)}`;
+        return;
+      }
+
+      if (type === 'reports') {
+        window.location.href = `reportes.html?search=${encodeURIComponent(query)}`;
+      }
+    }
+
+    function findColumnByPatterns(patterns) {
+      const normalizedColumns = productColumns.map(column => ({
+        original: column,
+        normalized: normalizeColumnName(column)
+      }));
+
+      for (const pattern of patterns) {
+        const exactMatch = normalizedColumns.find(column =>
+          column.normalized === pattern
+        );
+
+        if (exactMatch) return exactMatch.original;
+      }
+
+      for (const pattern of patterns) {
+        const partialMatch = normalizedColumns.find(column =>
+          column.normalized.includes(pattern)
+        );
+
+        if (partialMatch) return partialMatch.original;
+      }
+
+      return '';
+    }
+
+    function getProductColumns() {
+      return {
+        pk: findColumnByPatterns(['idproducto', 'productoid', 'id']),
+        name: findColumnByPatterns([
+          'nombre',
+          'nombreproducto',
+          'descripcionproducto',
+          'descripcion',
+          'producto'
+        ]),
+        barcode: findColumnByPatterns([
+          'codigobarra',
+          'codigodebarra',
+          'codigoarras',
+          'barcode',
+          'barras',
+          'upc',
+          'ean'
+        ]),
+        stock: findColumnByPatterns([
+          'unidadesenstock',
+          'stockactual',
+          'stock',
+          'existencia',
+          'existencias',
+          'cantidadinventario'
+        ]),
+        price: findColumnByPatterns([
+          'preciounitario',
+          'precio',
+          'price',
+          'costo'
+        ]),
+        reorder: findColumnByPatterns([
+          'niveldereorden',
+          'reorden',
+          'stockminimo',
+          'minimo',
+          'min'
+        ]),
+        category: findColumnByPatterns([
+          'idcategoria',
+          'categoria',
+          'category'
+        ]),
+        brand: findColumnByPatterns([
+          'marca',
+          'brand',
+          'fabricante'
+        ])
+      };
+    }
+
+    function detectProductTables(tables) {
+      const list = Array.isArray(tables) ? tables : [];
+
+      const exactProducts = list.filter(item => {
+        const tableName = normalizeText(item.table_name);
+
+        return tableName === 'productos' || tableName === 'products';
+      });
+
+      if (exactProducts.length) {
+        return exactProducts;
+      }
+
+      const strongProductTables = list.filter(item => {
+        const tableName = normalizeText(item.table_name);
+
+        return (
+          tableName.includes('producto') ||
+          tableName.includes('product') ||
+          tableName.includes('repuesto') ||
+          tableName.includes('articulo') ||
+          tableName.includes('item')
+        );
+      });
+
+      return strongProductTables;
+    }
+
+    async function loadProducts() {
+      productsTableInfo.textContent = 'Cargando';
+      productsTableInfo.className = 'dashboard-loading';
+
+      const tablesResponse = await fetch(`/api/tables?t=${Date.now()}`, {
+        cache: 'no-store',
+        credentials: 'include'
+      });
+
+      if (!tablesResponse.ok) {
+        throw new Error('No se pudieron consultar las tablas.');
+      }
+
+      const tables = await tablesResponse.json();
+
+      const detected = detectProductTables(Array.isArray(tables) ? tables : []);
+      const productTable = detected[0];
+
+      if (!productTable) {
+        throw new Error('No se encontró una tabla de productos válida.');
+      }
+
+      productTableSelected = productTable;
+
+      const response = await fetch(
+        `/api/table/${encodeURIComponent(productTable.schema_name)}/${encodeURIComponent(productTable.table_name)}?top=500&t=${Date.now()}`,
+        {
+          cache: 'no-store',
+          credentials: 'include'
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar los productos.');
+      }
+
+      const rows = await response.json();
+
+      productRows = Array.isArray(rows) ? rows : [];
+      productColumns = productRows.length ? Object.keys(productRows[0]) : [];
+
+      productsTableInfo.textContent = labelFor(productTable.schema_name, productTable.table_name);
+      productsTableInfo.className = 'muted';
+
+      const cols = getProductColumns();
+
+      if (!cols.stock) {
+        throw new Error(
+          `La tabla ${labelFor(productTable.schema_name, productTable.table_name)} no tiene una columna de stock reconocible.`
+        );
+      }
+
+      console.log('Dashboard tabla de productos:', productTable);
+      console.log('Dashboard columnas detectadas:', cols);
+      console.log('Dashboard productos cargados:', productRows.length);
+
+      const zeroStockRows = productRows.filter(row => safeNumber(row[cols.stock]) <= 0);
+      console.log('Dashboard productos agotados detectados:', zeroStockRows.length);
+    }
+
+    async function loadMovements() {
+      try {
+        movementsInfo.textContent = 'Cargando...';
+
+        const response = await fetch(`/api/kardex/movimientos?top=500&t=${Date.now()}`, {
+          cache: 'no-store',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('No se pudieron cargar movimientos.');
+        }
+
+        const rows = await response.json();
+
+        movements = Array.isArray(rows) ? rows : [];
+        movementsInfo.textContent = `${movements.length} movimiento(s)`;
+      } catch (error) {
+        console.error(error);
+        movements = [];
+        movementsInfo.textContent = 'Sin datos';
+      }
+    }
+
+    function getDashboardStats() {
+      const cols = getProductColumns();
+
+      let totalStock = 0;
+      let lowStock = 0;
+      let outStock = 0;
+      let okStock = 0;
+      let inventoryValue = 0;
+
+      const criticalProducts = [];
+
+      productRows.forEach(row => {
+        const stock = safeNumber(row[cols.stock]);
+        const price = safeNumber(row[cols.price]);
+        const reorderValue = safeNumber(row[cols.reorder]);
+        const reorder = reorderValue > 0 ? reorderValue : 5;
+
+        totalStock += stock;
+        inventoryValue += stock * price;
+
+        if (stock <= 0) {
+          outStock++;
+          criticalProducts.push({
+            row,
+            stock,
+            level: 'out'
+          });
+          return;
+        }
+
+        if (stock <= reorder) {
+          lowStock++;
+          criticalProducts.push({
+            row,
+            stock,
+            level: 'low'
+          });
+          return;
+        }
+
+        okStock++;
+      });
+
+      criticalProducts.sort((a, b) => a.stock - b.stock);
+
+      return {
+        totalProducts: productRows.length,
+        totalStock,
+        lowStock,
+        outStock,
+        okStock,
+        inventoryValue,
+        criticalProducts
+      };
+    }
+
+    function buildChartRow(label, value, total, fillClass) {
+      const percent = total > 0 ? Math.round((value / total) * 100) : 0;
+
+      return `
+        <div class="chart-row">
+          <div class="chart-label">${escapeHtml(label)}</div>
+          <div class="chart-track">
+            <div class="chart-fill ${fillClass}" style="width:${percent}%"></div>
+          </div>
+          <div class="chart-value">${value} · ${percent}%</div>
+        </div>
+      `;
+    }
+
+    function renderStats() {
+      const stats = getDashboardStats();
+      const total = stats.totalProducts;
+
+      statProducts.textContent = stats.totalProducts.toString();
+      statStock.textContent = stats.totalStock.toString();
+      statLowStock.textContent = stats.lowStock.toString();
+      statOutStock.textContent = stats.outStock.toString();
+
+      alertOutStock.textContent = stats.outStock.toString();
+      alertLowStock.textContent = stats.lowStock.toString();
+      alertOkStock.textContent = stats.okStock.toString();
+      alertInventoryValue.textContent = formatMoney(stats.inventoryValue);
+
+      const health = total > 0
+        ? Math.max(0, Math.round((stats.okStock / total) * 100))
+        : 0;
+
+      statusRing.style.setProperty('--healthPercent', `${health}%`);
+      healthPercent.textContent = `${health}%`;
+
+      if (total === 0) {
+        healthText.textContent = 'No hay productos suficientes para calcular la salud del inventario.';
+      } else if (stats.outStock > 0) {
+        healthText.textContent = `Atención: hay ${stats.outStock} producto(s) agotado(s) que requieren reposición.`;
+      } else if (stats.lowStock > 0) {
+        healthText.textContent = `Inventario funcional, pero ${stats.lowStock} producto(s) están cerca del mínimo.`;
+      } else {
+        healthText.textContent = 'El inventario se encuentra estable según el stock registrado.';
+      }
+    }
+
+    function renderStockChart() {
+      const stats = getDashboardStats();
+      const total = Math.max(stats.totalProducts, 1);
+
+      stockChart.innerHTML = [
+        buildChartRow('Disponibles', stats.okStock, total, 'fill-ok'),
+        buildChartRow('Stock bajo', stats.lowStock, total, 'fill-low'),
+        buildChartRow('Agotados', stats.outStock, total, 'fill-out')
+      ].join('');
+    }
+
+    function renderMovementChart() {
+      let entradas = 0;
+      let salidas = 0;
+      let incidencias = 0;
+
+      movements.forEach(row => {
+        const impact = safeNumber(row.Impacto);
+        const quantity = safeNumber(row.Cantidad);
+
+        if (impact > 0) entradas += quantity;
+        if (impact < 0) salidas += quantity;
+        if (incidentTypes.has(row.TipoMovimiento)) incidencias++;
+      });
+
+      const total = Math.max(entradas + salidas + incidencias, 1);
+
+      movementChart.innerHTML = [
+        buildChartRow('Entradas', entradas, total, 'fill-in'),
+        buildChartRow('Salidas', salidas, total, 'fill-out-move'),
+        buildChartRow('Incidencias', incidencias, total, 'fill-incidence')
+      ].join('');
+    }
+
+    function renderCriticalList() {
+      const cols = getProductColumns();
+      const stats = getDashboardStats();
+      const criticalProducts = stats.criticalProducts.slice(0, 6);
+
+      if (!criticalProducts.length) {
+        criticalList.innerHTML = `
+          <div class="empty-dashboard">
+            No hay productos agotados ni con stock bajo. El inventario se encuentra estable.
+          </div>
+        `;
+        return;
+      }
+
+      criticalList.innerHTML = criticalProducts.map(item => {
+        const product = item.row;
+        const name = product[cols.name] || 'Producto sin nombre';
+        const barcode = product[cols.barcode] || 'Sin código';
+        const category = product[cols.category] || product[cols.brand] || 'Sin categoría';
+        const pillClass = item.level === 'out' ? 'out' : 'low';
+        const pillText = item.level === 'out' ? 'Agotado' : `Stock ${item.stock}`;
+
+        return `
+          <div class="critical-item">
+            <div>
+              <strong title="${escapeHtml(name)}">${escapeHtml(name)}</strong>
+              <small>${escapeHtml(barcode)} · ${escapeHtml(category)}</small>
+            </div>
+            <span class="stock-pill ${pillClass}">${escapeHtml(pillText)}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderDashboard() {
+      renderStats();
+      renderStockChart();
+      renderMovementChart();
+      renderCriticalList();
+    }
+
+    function renderDashboardLoading() {
+      stockChart.innerHTML = '<div class="empty-dashboard">Actualizando inventario...</div>';
+      movementChart.innerHTML = '<div class="empty-dashboard">Actualizando movimientos...</div>';
+      criticalList.innerHTML = '<div class="empty-dashboard">Actualizando alertas...</div>';
+      healthText.textContent = 'Actualizando estado general del inventario...';
+    }
+
+    function renderDashboardError(message) {
+      productsTableInfo.textContent = 'Error';
+      productsTableInfo.className = 'muted';
+
+      stockChart.innerHTML = `
+        <div class="empty-dashboard">
+          No se pudo cargar el inventario: <strong>${escapeHtml(message)}</strong>
+        </div>
+      `;
+
+      movementChart.innerHTML = `
+        <div class="empty-dashboard">
+          No se pudieron cargar los movimientos recientes.
+        </div>
+      `;
+
+      criticalList.innerHTML = `
+        <div class="empty-dashboard">
+          No se pudieron generar alertas inteligentes.
+        </div>
+      `;
+
+      healthText.textContent = 'No se pudo calcular la salud del inventario.';
+    }
+
+    async function initDashboard() {
+      if (refreshingDashboard) return;
+
+      refreshingDashboard = true;
+      refreshDashboardBtn.disabled = true;
+      refreshDashboardBtn.textContent = 'Actualizando...';
+
+      renderDashboardLoading();
+
+      try {
+        await loadProducts();
+        await loadMovements();
+        renderDashboard();
+      } catch (error) {
+        console.error(error);
+        renderDashboardError(error.message || 'Error desconocido.');
+      } finally {
+        refreshingDashboard = false;
+        refreshDashboardBtn.disabled = false;
+        refreshDashboardBtn.textContent = 'Actualizar dashboard';
+      }
+    }
+
+    function showScannerError(message) {
+      scannerError.textContent = message;
+      scannerError.style.display = 'block';
+    }
 
     function hideScannerMessages() {
-      scannerResult.style.display = 'none';
-      scannerError.style.display = 'none';
       scannerResult.textContent = '';
       scannerError.textContent = '';
+      scannerResult.style.display = 'none';
+      scannerError.style.display = 'none';
     }
 
     async function cargarCamaras() {
       hideScannerMessages();
+
+      if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia ||
+        !navigator.mediaDevices.enumerateDevices
+      ) {
+        showScannerError('Tu navegador no permite acceder a cámaras. Usa localhost o HTTPS.');
+        return;
+      }
+
       try {
-        const permiso = await navigator.mediaDevices.getUserMedia({video:true});
+        const permiso = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+
         permiso.getTracks().forEach(track => track.stop());
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const cams = devices.filter(d=>d.kind==='videoinput');
+
+        const dispositivos = await navigator.mediaDevices.enumerateDevices();
+        const camaras = dispositivos.filter(dispositivo => dispositivo.kind === 'videoinput');
+
         scannerCamera.innerHTML = '';
-        if(cams.length===0) {
-          scannerCamera.innerHTML = '<option>No se encontraron cámaras</option>';
-          scannerError.style.display='block';
-          scannerError.textContent='No se encontró ninguna cámara.';
+
+        if (!camaras.length) {
+          scannerCamera.innerHTML = '<option value="">No se encontraron cámaras</option>';
+          showScannerError('No se encontró ninguna cámara disponible.');
           return;
         }
-        cams.forEach((cam,i)=>{
+
+        camaras.forEach((camara, index) => {
           const option = document.createElement('option');
-          option.value = cam.deviceId;
-          option.textContent = cam.label || 'Cámara ' + (i+1);
+
+          option.value = camara.deviceId;
+          option.textContent = camara.label || `Cámara ${index + 1}`;
+
           scannerCamera.appendChild(option);
         });
-        const idx = cams.findIndex(c=>c.label.toLowerCase().includes('droidcam'));
-        scannerCamera.selectedIndex = idx>=0?idx:0;
-      } catch(e){
-        console.error(e);
-        scannerError.style.display='block';
-        scannerError.textContent='Error al acceder a la cámara. Verifica permisos.';
+
+        const droidIndex = camaras.findIndex(camara =>
+          camara.label.toLowerCase().includes('droidcam')
+        );
+
+        scannerCamera.selectedIndex = droidIndex >= 0 ? droidIndex : 0;
+      } catch (error) {
+        console.error(error);
+
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          showScannerError('Permiso de cámara denegado. Habilita la cámara en el navegador.');
+          return;
+        }
+
+        if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          showScannerError('No se encontró ninguna cámara conectada.');
+          return;
+        }
+
+        if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          showScannerError('La cámara está siendo usada por otra aplicación.');
+          return;
+        }
+
+        showScannerError('Error al cargar cámaras.');
       }
     }
 
-    function iniciarScanner(){
+    async function openScanner() {
+      scannerTargetInput = searchInput;
+
       hideScannerMessages();
+
+      scannerContainer.style.display = 'none';
+      document.getElementById('startScanner').style.display = 'inline-block';
+      document.getElementById('stopScanner').style.display = 'none';
+
+      scannerModal.showModal();
+
+      await cargarCamaras();
+    }
+
+    function iniciarScanner() {
+      hideScannerMessages();
+
       const cameraId = scannerCamera.value;
-      if(!cameraId){scannerError.textContent='Selecciona una cámara.';scannerError.style.display='block'; return;}
-      if(scannerActivo) return;
-      scannerContainer.style.display='block';
+
+      if (!cameraId) {
+        showScannerError('Primero cargá y seleccioná una cámara.');
+        return;
+      }
+
+      if (scannerActivo) return;
+
+      scannerContainer.style.display = 'block';
+
       Quagga.init({
-        inputStream:{
-          type:'LiveStream',
-          target:scannerContainer,
-          constraints:{
-            deviceId:{exact:cameraId},
-            width:{ideal:1280},
-            height:{ideal:720}
+        inputStream: {
+          type: 'LiveStream',
+          target: scannerContainer,
+          constraints: {
+            deviceId: {
+              exact: cameraId
+            },
+            width: {
+              ideal: 1280
+            },
+            height: {
+              ideal: 720
+            }
           },
-          area:{top:'20%', right:'5%', left:'5%', bottom:'20%'}
+          area: {
+            top: '20%',
+            right: '5%',
+            left: '5%',
+            bottom: '20%'
+          }
         },
-        locator:{patchSize:'medium', halfSample:false},
-        numOfWorkers:navigator.hardwareConcurrency||4,
-        decoder:{readers:['upc_reader','ean_reader','code_128_reader','code_39_reader'], multiple:false},
-        locate:true
-      },function(err){
-        if(err){console.error(err); scannerError.style.display='block'; scannerError.textContent='No se pudo iniciar el escáner'; scannerContainer.style.display='none'; return;}
+        locator: {
+          patchSize: 'medium',
+          halfSample: false
+        },
+        numOfWorkers: navigator.hardwareConcurrency || 4,
+        frequency: 10,
+        decoder: {
+          readers: [
+            'upc_reader',
+            'upc_e_reader',
+            'ean_reader',
+            'ean_8_reader',
+            'code_128_reader',
+            'code_39_reader'
+          ],
+          multiple: false
+        },
+        locate: true
+      }, function(error) {
+        if (error) {
+          console.error(error);
+          showScannerError('No se pudo iniciar el escáner con la cámara seleccionada.');
+          scannerContainer.style.display = 'none';
+          return;
+        }
+
         Quagga.start();
+
         scannerActivo = true;
-        startScanner.style.display='none';
-        stopScanner.style.display='inline-block';
-        loadScannerCameras.disabled=true;
+
+        document.getElementById('startScanner').style.display = 'none';
+        document.getElementById('stopScanner').style.display = 'inline-block';
       });
+
       Quagga.offDetected(onDetected);
       Quagga.onDetected(onDetected);
     }
 
-    function onDetected(data){
-      if(!data||!data.codeResult||!data.codeResult.code) return;
-      const code = data.codeResult.code;
-      if(code===ultimoCodigo){repeticiones++;} else {ultimoCodigo=code; repeticiones=1;}
-      if(repeticiones<2) return;
-      quickSearchInput.value = code;
-      scannerResult.textContent = `Código detectado: ${code} (${data.codeResult.format})`;
-      scannerResult.style.display='block';
+    function onDetected(result) {
+      if (!result || !result.codeResult || !result.codeResult.code) return;
+
+      const codigo = result.codeResult.code;
+      const formato = result.codeResult.format;
+
+      if (codigo === ultimoCodigo) {
+        repeticiones++;
+      } else {
+        ultimoCodigo = codigo;
+        repeticiones = 1;
+      }
+
+      if (repeticiones < 2) return;
+
+      if (scannerTargetInput) {
+        scannerTargetInput.value = codigo;
+        scannerTargetInput.dispatchEvent(new Event('input', { bubbles: true }));
+        scannerTargetInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      scannerResult.textContent = `Código detectado: ${codigo} (${formato})`;
+      scannerResult.style.display = 'block';
+
+      detenerScanner();
+
+      setTimeout(() => {
+        if (scannerModal.open) {
+          scannerModal.close();
+        }
+
+        searchBtn.click();
+      }, 600);
+    }
+
+    function detenerScanner() {
+      if (!scannerActivo) return;
+
+      try {
+        Quagga.stop();
+      } catch (error) {
+        console.error(error);
+      }
+
+      scannerActivo = false;
+      ultimoCodigo = null;
+      repeticiones = 0;
+
+      scannerContainer.style.display = 'none';
+      document.getElementById('startScanner').style.display = 'inline-block';
+      document.getElementById('stopScanner').style.display = 'none';
+    }
+
+    function closeScannerModal() {
       detenerScanner();
       scannerModal.close();
     }
 
-    function detenerScanner(){
-      if(!scannerActivo) return;
-      try{Quagga.stop();scannerActivo=false;scannerContainer.style.display='none';startScanner.style.display='inline-block';stopScanner.style.display='none';loadScannerCameras.disabled=false;ultimoCodigo=null;repeticiones=0;} catch(e){console.error(e); scannerError.style.display='block'; scannerError.textContent='Error al detener la cámara';}
-    }
+    dataTypeSel.addEventListener('change', updateSearchHints);
+    searchBtn.addEventListener('click', goToSearch);
+    refreshDashboardBtn.addEventListener('click', initDashboard);
 
-    scanBtn.addEventListener('click',()=>scannerModal.showModal());
-    loadScannerCameras.addEventListener('click',cargarCamaras);
-    startScanner.addEventListener('click',iniciarScanner);
-    stopScanner.addEventListener('click',detenerScanner);
-    closeScanner.addEventListener('click',()=>{detenerScanner();scannerModal.close();});
-    cancelScanner.addEventListener('click',()=>{detenerScanner();scannerModal.close();});
+    searchInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        goToSearch();
+      }
+    });
 
+    scanSearchBtn.addEventListener('click', openScanner);
+    document.getElementById('loadScannerCameras').addEventListener('click', cargarCamaras);
+    document.getElementById('startScanner').addEventListener('click', iniciarScanner);
+    document.getElementById('stopScanner').addEventListener('click', detenerScanner);
+    document.getElementById('closeScanner').addEventListener('click', closeScannerModal);
+    document.getElementById('cancelScanner').addEventListener('click', closeScannerModal);
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        initDashboard();
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      initDashboard();
+    });
+
+    updateSearchHints();
+    initDashboard();
   </script>
+
+  <script src="/auth-widget.js?v=11"></script>
 </body>
 </html>

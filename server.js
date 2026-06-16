@@ -1,16 +1,33 @@
-// server.js
 require('dotenv').config();
 
 const path = require('path');
 const express = require('express');
+const session = require('express-session');
+const bcrypt = require('bcrypt');
 const sql = require('mssql');
 const cors = require('cors');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(session({
+  name: 'trackcore.sid',
+  secret: process.env.SESSION_SECRET || 'trackcore_secret_cambiar_en_env',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: false,
+    maxAge: 1000 * 60 * 60 * 8
+  }
+}));
 
 function toBool(value, defaultValue) {
   if (value === undefined || value === null || value === '') return defaultValue;
@@ -290,6 +307,24 @@ async function getColumnsMeta(db, schema, table) {
   return result.recordset;
 }
 
+async function columnExists(db, schema, table, column) {
+  const result = await db
+    .request()
+    .input('schema', sql.NVarChar, schema)
+    .input('table', sql.NVarChar, table)
+    .input('column', sql.NVarChar, column)
+    .query(`
+      SELECT 1 AS exists_column
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        TABLE_SCHEMA = @schema
+        AND TABLE_NAME = @table
+        AND COLUMN_NAME = @column;
+    `);
+
+  return result.recordset.length > 0;
+}
+
 async function getSinglePk(db, schema, table) {
   const result = await db
     .request()
@@ -344,6 +379,76 @@ function filterPayloadByColumns(payload, columnsMeta, excludedColumns = []) {
   return result;
 }
 
+/* ================== AUTH HELPERS ================== */
+
+function getSessionUser(req) {
+  return req.session && req.session.user ? req.session.user : null;
+}
+
+function normalizeSecurityAnswer(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function requireAuthPage(req, res, next) {
+  const publicPaths = new Set([
+    '/login.html',
+    '/recuperar.html',
+    '/style.css',
+    '/auth-widget.js',
+    '/favicon.ico'
+  ]);
+
+  if (publicPaths.has(req.path)) {
+    return next();
+  }
+
+  if (req.path.startsWith('/api/auth/')) {
+    return next();
+  }
+
+  if (
+    req.path.startsWith('/images/') ||
+    req.path.startsWith('/img/') ||
+    req.path.startsWith('/assets/')
+  ) {
+    return next();
+  }
+
+  const user = getSessionUser(req);
+
+  if (!user) {
+    return res.redirect('/login.html');
+  }
+
+  return next();
+}
+
+function requireAuthApi(req, res, next) {
+  const user = getSessionUser(req);
+
+  if (!user) {
+    return res.status(401).json({
+      error: 'Sesión no iniciada.'
+    });
+  }
+
+  return next();
+}
+
+/* ================== RUTA INICIAL ================== */
+
+app.get('/', (req, res) => {
+  if (getSessionUser(req)) {
+    return res.redirect('/index.html');
+  }
+
+  return res.redirect('/login.html');
+});
+
 /* ================== HEALTH ================== */
 
 app.get('/api/health', async (req, res, next) => {
@@ -359,6 +464,366 @@ app.get('/api/health', async (req, res, next) => {
     next(error);
   }
 });
+
+/* ================== AUTH API ================== */
+
+app.get('/api/auth/me', (req, res) => {
+  const user = getSessionUser(req);
+
+  if (!user) {
+    return res.json({
+      authenticated: false,
+      user: null
+    });
+  }
+
+  return res.json({
+    authenticated: true,
+    user
+  });
+});
+
+app.post('/api/auth/login', async (req, res, next) => {
+  try {
+    const usuario = String(req.body?.usuario || '').trim();
+    const password = String(req.body?.password || '');
+
+    if (!usuario || !password) {
+      throw new ApiError(400, 'Usuario y contraseña son requeridos.');
+    }
+
+    const db = await getPool();
+
+    const hasFotoUrl = await columnExists(db, 'dbo', 'Usuarios', 'FotoUrl');
+    const fotoSelect = hasFotoUrl
+      ? ', FotoUrl'
+      : ', CAST(NULL AS NVARCHAR(300)) AS FotoUrl';
+
+    const result = await db
+      .request()
+      .input('Usuario', sql.NVarChar(50), usuario)
+      .query(`
+        SELECT TOP (1)
+          IDUsuario,
+          Nombre,
+          Usuario,
+          PasswordHash,
+          Rol,
+          Activo
+          ${fotoSelect}
+        FROM dbo.Usuarios
+        WHERE Usuario = @Usuario;
+      `);
+
+    const user = result.recordset[0];
+
+    if (!user) {
+      throw new ApiError(401, 'Usuario o contraseña incorrectos.');
+    }
+
+    if (!user.Activo) {
+      throw new ApiError(403, 'El usuario está inactivo.');
+    }
+
+    const passwordOk = await bcrypt.compare(password, user.PasswordHash);
+
+    if (!passwordOk) {
+      throw new ApiError(401, 'Usuario o contraseña incorrectos.');
+    }
+
+    req.session.user = {
+      id: user.IDUsuario,
+      nombre: user.Nombre,
+      usuario: user.Usuario,
+      rol: user.Rol,
+      fotoUrl: user.FotoUrl || null
+    };
+
+    res.json({
+      ok: true,
+      user: req.session.user
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  req.session.destroy((error) => {
+    if (error) {
+      return res.status(500).json({
+        error: 'No se pudo cerrar la sesión.'
+      });
+    }
+
+    res.clearCookie('trackcore.sid');
+
+    return res.json({
+      ok: true
+    });
+  });
+});
+
+/* ================== RECUPERACIÓN POR PREGUNTA DE SEGURIDAD ================== */
+
+app.post('/api/auth/security-question', async (req, res, next) => {
+  try {
+    const identifier = String(
+      req.body?.identifier ||
+      req.body?.usuario ||
+      req.body?.correo ||
+      ''
+    ).trim();
+
+    if (!identifier) {
+      throw new ApiError(400, 'Ingresa tu usuario o correo.');
+    }
+
+    const db = await getPool();
+
+    const result = await db
+      .request()
+      .input('Identifier', sql.NVarChar(150), identifier)
+      .query(`
+        SELECT TOP (1)
+          IDUsuario,
+          Nombre,
+          Usuario,
+          Correo,
+          Activo,
+          PreguntaSeguridad,
+          RespuestaSeguridadHash,
+          IntentosRecuperacion,
+          BloqueoRecuperacionHasta
+        FROM dbo.Usuarios
+        WHERE
+          Usuario = @Identifier
+          OR Correo = @Identifier;
+      `);
+
+    const user = result.recordset[0];
+
+    if (!user || !user.Activo) {
+      throw new ApiError(404, 'No se encontró un usuario activo con esos datos.');
+    }
+
+    if (!user.PreguntaSeguridad || !user.RespuestaSeguridadHash) {
+      throw new ApiError(400, 'Este usuario no tiene configurada una pregunta de seguridad.');
+    }
+
+    if (user.BloqueoRecuperacionHasta) {
+      const blockedUntil = new Date(user.BloqueoRecuperacionHasta);
+      const now = new Date();
+
+      if (blockedUntil > now) {
+        throw new ApiError(
+          429,
+          'La recuperación está bloqueada temporalmente. Intenta nuevamente más tarde.'
+        );
+      }
+    }
+
+    res.json({
+      ok: true,
+      usuario: user.Usuario,
+      nombre: user.Nombre,
+      pregunta: user.PreguntaSeguridad
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/auth/reset-password-security', async (req, res, next) => {
+  try {
+    const identifier = String(
+      req.body?.identifier ||
+      req.body?.usuario ||
+      req.body?.correo ||
+      ''
+    ).trim();
+
+    const answer = normalizeSecurityAnswer(
+      req.body?.answer ||
+      req.body?.respuesta ||
+      ''
+    );
+
+    const newPassword = String(
+      req.body?.newPassword ||
+      req.body?.nuevaPassword ||
+      ''
+    );
+
+    if (!identifier || !answer || !newPassword) {
+      throw new ApiError(
+        400,
+        'Usuario/correo, respuesta y nueva contraseña son requeridos.'
+      );
+    }
+
+    if (newPassword.length < 6) {
+      throw new ApiError(400, 'La nueva contraseña debe tener al menos 6 caracteres.');
+    }
+
+    const db = await getPool();
+
+    const result = await db
+      .request()
+      .input('Identifier', sql.NVarChar(150), identifier)
+      .query(`
+        SELECT TOP (1)
+          IDUsuario,
+          Nombre,
+          Usuario,
+          Correo,
+          Activo,
+          PreguntaSeguridad,
+          RespuestaSeguridadHash,
+          IntentosRecuperacion,
+          BloqueoRecuperacionHasta
+        FROM dbo.Usuarios
+        WHERE
+          Usuario = @Identifier
+          OR Correo = @Identifier;
+      `);
+
+    const user = result.recordset[0];
+
+    if (!user || !user.Activo) {
+      throw new ApiError(400, 'Respuesta incorrecta o usuario no válido.');
+    }
+
+    if (!user.PreguntaSeguridad || !user.RespuestaSeguridadHash) {
+      throw new ApiError(400, 'Este usuario no tiene configurada una pregunta de seguridad.');
+    }
+
+    if (user.BloqueoRecuperacionHasta) {
+      const blockedUntil = new Date(user.BloqueoRecuperacionHasta);
+      const now = new Date();
+
+      if (blockedUntil > now) {
+        throw new ApiError(
+          429,
+          'La recuperación está bloqueada temporalmente. Intenta nuevamente más tarde.'
+        );
+      }
+    }
+
+    const answerOk = await bcrypt.compare(answer, user.RespuestaSeguridadHash);
+
+    if (!answerOk) {
+      const currentAttempts = Number(user.IntentosRecuperacion || 0);
+      const nextAttempts = currentAttempts + 1;
+
+      if (nextAttempts >= 5) {
+        await db
+          .request()
+          .input('IDUsuario', sql.Int, user.IDUsuario)
+          .query(`
+            UPDATE dbo.Usuarios
+            SET 
+              IntentosRecuperacion = 0,
+              BloqueoRecuperacionHasta = DATEADD(MINUTE, 15, SYSDATETIME())
+            WHERE IDUsuario = @IDUsuario;
+          `);
+
+        throw new ApiError(
+          429,
+          'Demasiados intentos incorrectos. La recuperación fue bloqueada por 15 minutos.'
+        );
+      }
+
+      await db
+        .request()
+        .input('IDUsuario', sql.Int, user.IDUsuario)
+        .input('IntentosRecuperacion', sql.Int, nextAttempts)
+        .query(`
+          UPDATE dbo.Usuarios
+          SET IntentosRecuperacion = @IntentosRecuperacion
+          WHERE IDUsuario = @IDUsuario;
+        `);
+
+      throw new ApiError(400, 'Respuesta incorrecta.');
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+    await db
+      .request()
+      .input('IDUsuario', sql.Int, user.IDUsuario)
+      .input('PasswordHash', sql.NVarChar(255), newPasswordHash)
+      .query(`
+        UPDATE dbo.Usuarios
+        SET
+          PasswordHash = @PasswordHash,
+          IntentosRecuperacion = 0,
+          BloqueoRecuperacionHasta = NULL
+        WHERE IDUsuario = @IDUsuario;
+      `);
+
+    res.json({
+      ok: true,
+      message: 'Contraseña actualizada correctamente. Ya puedes iniciar sesión.'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post('/api/auth/set-security-question', requireAuthApi, async (req, res, next) => {
+  try {
+    const userSession = getSessionUser(req);
+
+    if (!userSession) {
+      throw new ApiError(401, 'Sesión no iniciada.');
+    }
+
+    const question = String(req.body?.question || req.body?.pregunta || '').trim();
+    const answer = normalizeSecurityAnswer(req.body?.answer || req.body?.respuesta || '');
+
+    if (!question || !answer) {
+      throw new ApiError(400, 'La pregunta y la respuesta son requeridas.');
+    }
+
+    if (question.length < 8) {
+      throw new ApiError(400, 'La pregunta debe tener al menos 8 caracteres.');
+    }
+
+    if (answer.length < 3) {
+      throw new ApiError(400, 'La respuesta debe tener al menos 3 caracteres.');
+    }
+
+    const answerHash = await bcrypt.hash(answer, 10);
+    const db = await getPool();
+
+    await db
+      .request()
+      .input('IDUsuario', sql.Int, userSession.id)
+      .input('PreguntaSeguridad', sql.NVarChar(250), question)
+      .input('RespuestaSeguridadHash', sql.NVarChar(255), answerHash)
+      .query(`
+        UPDATE dbo.Usuarios
+        SET
+          PreguntaSeguridad = @PreguntaSeguridad,
+          RespuestaSeguridadHash = @RespuestaSeguridadHash,
+          IntentosRecuperacion = 0,
+          BloqueoRecuperacionHasta = NULL
+        WHERE IDUsuario = @IDUsuario;
+      `);
+
+    res.json({
+      ok: true,
+      message: 'Pregunta de seguridad actualizada correctamente.'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/* ================== PROTEGER APIs ================== */
+
+app.use('/api', requireAuthApi);
 
 /* ================== TABLES API DINÁMICA ================== */
 
@@ -564,7 +1029,7 @@ app.get('/api/productos/codigo/:codigoBarra', async (req, res, next) => {
       .query(`
         SELECT TOP (1)
           *
-        FROM dbo.Producto
+        FROM dbo.Productos
         WHERE CodigoBarra = @CodigoBarra;
       `);
 
@@ -637,7 +1102,7 @@ app.get('/api/kardex/movimientos', async (req, res, next) => {
         k.Detalle,
         k.FechaMovimiento
       FROM dbo.KardexInventario k
-      LEFT JOIN dbo.Producto p
+      LEFT JOIN dbo.Productos p
         ON p.IDProducto = k.IDProducto
       ${whereSql}
       ORDER BY k.FechaMovimiento DESC, k.IDMovimiento DESC;
@@ -699,7 +1164,7 @@ app.post('/api/kardex/movimiento', async (req, res, next) => {
           CodigoBarra,
           UnidadesEnStock,
           PrecioUnitario
-        FROM dbo.Producto WITH (UPDLOCK, ROWLOCK)
+        FROM dbo.Productos WITH (UPDLOCK, ROWLOCK)
         WHERE IDProducto = @IDProducto;
       `);
 
@@ -725,7 +1190,7 @@ app.post('/api/kardex/movimiento', async (req, res, next) => {
         .input('IDProducto', sql.Int, idProducto)
         .input('StockNuevo', sql.Int, stockNuevo)
         .query(`
-          UPDATE dbo.Producto
+          UPDATE dbo.Productos
           SET UnidadesEnStock = @StockNuevo
           WHERE IDProducto = @IDProducto;
         `);
@@ -808,6 +1273,11 @@ app.post('/api/kardex/movimiento', async (req, res, next) => {
     next(error);
   }
 });
+
+/* ================== PÁGINAS ESTÁTICAS PROTEGIDAS ================== */
+
+app.use(requireAuthPage);
+app.use(express.static(path.join(__dirname, 'public')));
 
 /* ================== 404 Y ERRORES ================== */
 
