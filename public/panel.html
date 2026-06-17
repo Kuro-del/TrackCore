@@ -2,14 +2,84 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>TrackCore - Panel de Productos Automotrices</title>
+  <title>TrackCore - Gestión de Productos y Clientes</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=30" />
 
   <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
 
-
   <style>
+    .panel-main {
+      width: min(1450px, calc(100% - 2rem));
+      margin: 1.2rem auto 2.5rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .panel-hero {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .panel-title {
+      margin: 0 0 0.35rem;
+      color: var(--text);
+      font-size: 1.8rem;
+    }
+
+    .panel-description {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 0.82rem;
+      font-weight: 800;
+      margin-bottom: 0.9rem;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--success);
+    }
+
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-top: 1.1rem;
+    }
+
+    .module-tab {
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.35);
+      color: var(--primary);
+      font-weight: 900;
+      border-radius: 999px;
+      padding: 0.65rem 1rem;
+      cursor: pointer;
+    }
+
+    .module-tab.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: var(--shadow-sm);
+    }
+
     .panel-summary {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -19,111 +89,44 @@
     .summary-card {
       border-radius: 16px;
       padding: 1rem 1.15rem;
-      background: #f8fafc;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.12)),
+        #f6eef5;
       border: 1px solid var(--border);
-      box-shadow: none;
+      box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
       gap: 0.2rem;
     }
 
     .summary-label {
-      font-size: 0.78rem;
+      font-size: 0.74rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--muted);
+      color: var(--primary);
+      font-weight: 900;
     }
 
     .summary-value {
-      font-size: 1.45rem;
-      font-weight: 700;
-      color: var(--text);
+      font-size: 1.55rem;
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 1.1;
     }
 
     .summary-help {
       font-size: 0.8rem;
       color: var(--muted);
+      line-height: 1.35;
     }
 
     .panel-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      align-items: flex-end;
+      display: grid;
+      grid-template-columns: minmax(260px, 1.4fr) minmax(170px, 0.65fr) minmax(170px, 0.65fr) minmax(170px, 0.55fr) minmax(120px, 0.4fr) auto;
+      gap: 0.85rem;
+      align-items: end;
     }
 
-    .panel-toolbar .field {
-      flex: 1 1 190px;
-      min-width: 180px;
-    }
-
-    .panel-toolbar .field.field-wide {
-      flex: 2 1 280px;
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      padding: 0.45rem 0.8rem;
-      border-radius: 999px;
-      border: 1px solid #bfd0e7;
-      background: #eef4fc;
-      color: #244d89;
-      font-size: 0.82rem;
-      margin-bottom: 1rem;
-    }
-
-    .status-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
-      background: #22c55e;
-    }
-
-    .table-actions {
-      display: flex;
-      gap: 0.45rem;
-      flex-wrap: wrap;
-    }
-
-    .table-input {
-      width: 100%;
-      min-width: 120px;
-    }
-
-    .grid td.actions-cell {
-      white-space: nowrap;
-    }
-
-    .empty-state {
-      padding: 1rem 0.25rem 0.25rem;
-    }
-
-    .empty-state strong {
-      display: block;
-      margin-bottom: 0.35rem;
-      color: var(--text);
-    }
-
-    .hint-block {
-      margin-top: 0.8rem;
-      padding: 0.8rem 1rem;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: #f8fafc;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .field-inline-help {
-      font-size: 0.74rem;
-      margin-top: 0.2rem;
-      color: var(--muted);
-      opacity: 0.9;
-    }
-
-    /* ── Campo de búsqueda con botón de escanear integrado ── */
     .search-barcode-wrap {
       display: flex;
       gap: 0.45rem;
@@ -135,28 +138,376 @@
       min-width: 0;
     }
 
-    .search-barcode-wrap .scan-search-btn {
-      flex: 0 0 auto;
-      white-space: nowrap;
+    .cards-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
     }
 
-    /* ── Controles de código de barras en tabla/formulario ── */
-    .barcode-control {
+    .cards-header h2 {
+      margin: 0 0 0.25rem;
+      color: var(--primary);
+      font-size: 1.12rem;
+    }
+
+    .cards-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .item-card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.40), rgba(255, 255, 255, 0.14)),
+        #f6eef5;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
       display: flex;
-      gap: 0.45rem;
+      flex-direction: column;
+      min-height: 305px;
+      color: var(--text);
+    }
+
+    .item-card:hover {
+      transform: translateY(-3px);
+      border-color: #b99fb4;
+      box-shadow: var(--shadow-md);
+    }
+
+    .product-image-wrap {
+      height: 185px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.92), rgba(246,238,245,0.96));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      padding: 0.8rem;
+      box-sizing: border-box;
+    }
+
+    .product-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      border-radius: 12px;
+    }
+
+    .client-avatar-wrap {
+      height: 185px;
+      background:
+        radial-gradient(circle at top, rgba(14,155,151,0.18), transparent 58%),
+        linear-gradient(135deg, rgba(255,255,255,0.92), rgba(246,238,245,0.96));
+      display: grid;
+      place-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .client-avatar {
+      width: 92px;
+      height: 92px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: var(--primary);
+      color: #fff;
+      font-size: 1.9rem;
+      font-weight: 900;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .item-card-body {
+      padding: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      flex: 1;
+    }
+
+    .item-name {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text);
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 2.7rem;
+    }
+
+    .item-code {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .item-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.7rem;
+      align-items: center;
+      margin-top: auto;
+    }
+
+    .stock-pill,
+    .info-pill {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.38rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 900;
+      white-space: nowrap;
+      border: 1px solid var(--border);
+    }
+
+    .stock-ok,
+    .info-ok {
+      color: var(--success);
+      background: var(--success-soft);
+      border-color: #b8dfcf;
+    }
+
+    .stock-low,
+    .info-warn {
+      color: var(--warning);
+      background: var(--warning-soft);
+      border-color: #f1d6a9;
+    }
+
+    .stock-out,
+    .info-danger {
+      color: var(--danger);
+      background: var(--danger-soft);
+      border-color: #efbcc1;
+    }
+
+    .price-text {
+      color: var(--accent);
+      font-weight: 900;
+      font-size: 0.9rem;
+      text-align: right;
+    }
+
+    .empty-items {
+      padding: 2rem;
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.25);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .pager {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.8rem;
+      margin-top: 1.1rem;
+    }
+
+    dialog.modal.item-modal,
+    dialog.modal.insert-modal {
+      width: min(1320px, calc(100vw - 2rem)) !important;
+      max-width: none !important;
+      max-height: calc(100vh - 2rem) !important;
+      padding: 0 !important;
+      border: 0 !important;
+      overflow: visible !important;
+    }
+
+    dialog.modal.item-modal > .card,
+    dialog.modal.insert-modal > .card {
+      width: 100% !important;
+      max-width: none !important;
+      max-height: calc(100vh - 2rem) !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      padding: 1.65rem !important;
+      box-sizing: border-box !important;
+    }
+
+    .detail-layout {
+      display: grid;
+      grid-template-columns: 390px minmax(0, 1fr);
+      gap: 1.6rem;
+      align-items: start;
+    }
+
+    .detail-side-card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #f6eef5;
+      overflow: hidden;
+      position: sticky;
+      top: 0.5rem;
+    }
+
+    .detail-image-wrap {
+      width: 100%;
+      height: 345px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.94), rgba(246,238,245,0.96));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+
+    .detail-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      border-radius: 14px;
+    }
+
+    .detail-avatar {
+      width: 135px;
+      height: 135px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: var(--primary);
+      color: #fff;
+      font-size: 2.6rem;
+      font-weight: 900;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .detail-side-info {
+      padding: 0.95rem;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .detail-side-info strong {
+      display: block;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .grid-form-items {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(300px, 1fr));
+      gap: 1.05rem 1.25rem;
+      align-items: start;
+    }
+
+    .grid-form-items .field {
+      min-width: 0;
+      margin: 0;
+    }
+
+    .grid-form-items .field-full {
+      grid-column: 1 / -1;
+    }
+
+    .grid-form-items label {
+      display: block;
+      margin-bottom: 0.45rem;
+      min-height: auto;
+      color: var(--primary);
+      font-size: 0.82rem;
+      font-weight: 900;
+      line-height: 1.25;
+      text-transform: none !important;
+      letter-spacing: 0.01em !important;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+
+    .grid-form-items input,
+    .grid-form-items select,
+    .grid-form-items textarea {
+      width: 100% !important;
+      min-height: 48px;
+      box-sizing: border-box;
+      border-radius: 14px;
+      font-size: 0.95rem;
+    }
+
+    .grid-form-items input:disabled {
+      opacity: 0.78;
+      cursor: not-allowed;
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    .barcode-control {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.55rem;
       align-items: center;
     }
 
     .barcode-control input {
-      flex: 1;
+      min-width: 0;
     }
 
-    .barcode-control .scan-barcode-btn {
-      flex: 0 0 auto;
-      white-space: nowrap;
+    .modal-header-title h3 {
+      margin-bottom: 0.2rem;
+      line-height: 1.25;
+      color: var(--primary);
+      word-break: break-word;
     }
 
-    /* ── Scanner modal ── */
+    .modal-header-title p {
+      margin: 0.25rem 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .modal-footer {
+      margin-top: 1.3rem;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .danger-zone {
+      margin-top: 1.3rem;
+      padding: 1rem;
+      border-radius: 16px;
+      border: 1px solid #efbcc1;
+      background: var(--danger-soft);
+    }
+
+    .danger-zone strong {
+      display: block;
+      color: var(--danger);
+      margin-bottom: 0.3rem;
+    }
+
+    .danger-zone p {
+      margin: 0 0 0.9rem;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
     .scanner-help {
       margin-top: 0.75rem;
       color: var(--muted);
@@ -189,7 +540,7 @@
       right: 8%;
       top: 50%;
       height: 3px;
-      background: #dc2626;
+      background: var(--danger);
       z-index: 10;
       opacity: 0.85;
     }
@@ -205,7 +556,6 @@
       font-weight: 700;
     }
 
-    /* ── NUEVO: div de error del escáner (igual que en kardex) ── */
     .scanner-error {
       display: none;
       margin-top: 0.75rem;
@@ -217,25 +567,83 @@
       font-weight: 700;
     }
 
-    @media (max-width: 980px) {
-      .panel-summary {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    @media (max-width: 1200px) {
+      .panel-toolbar {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+
+      .items-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .detail-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-side-card {
+        position: static;
+      }
+
+      .detail-image-wrap {
+        height: 280px;
+      }
+
+      .grid-form-items {
+        grid-template-columns: repeat(2, minmax(260px, 1fr));
       }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 980px) {
+      .panel-hero {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .items-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid-form-items {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .panel-main {
+        width: min(100% - 1rem, 1450px);
+      }
+
+      .panel-toolbar {
+        grid-template-columns: 1fr;
+      }
+
       .panel-summary {
         grid-template-columns: 1fr;
       }
 
-      .search-barcode-wrap {
-        flex-direction: column;
-        align-items: stretch;
+      .items-grid {
+        grid-template-columns: 1fr;
       }
 
+      .search-barcode-wrap,
       .barcode-control {
-        flex-direction: column;
-        align-items: stretch;
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      dialog.modal.item-modal,
+      dialog.modal.insert-modal {
+        width: calc(100vw - 1rem) !important;
+        max-height: calc(100vh - 1rem) !important;
+      }
+
+      dialog.modal.item-modal > .card,
+      dialog.modal.insert-modal > .card {
+        max-height: calc(100vh - 1rem) !important;
+        padding: 1rem !important;
       }
 
       #scannerContainer {
@@ -244,82 +652,116 @@
     }
   </style>
 </head>
-  <script src="auth-widget.js"></script>
-<body>
 
+<body class="app">
   <header class="appbar">
     <div class="brand">
-      <a href="index.html" class="icon-btn" title="Volver al menu" aria-label="Volver al menu">
+      <a href="index.html" class="icon-btn" title="Volver al menú" aria-label="Volver al menú">
         <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
           <path fill="currentColor" d="M15.7 5.3a1 1 0 0 1 0 1.4L11.4 11l4.3 4.3a1 1 0 1 1-1.4 1.4l-5-5a1 1 0 0 1 0-1.4l5-5a1 1 0 0 1 1.4 0z" />
         </svg>
       </a>
-      <strong>Panel de Productos Automotrices</strong>
+
+      <strong>Gestión</strong>
     </div>
 
     <div class="actions">
-      <button id="refreshBtn" class="btn ghost" title="Actualizar datos">&#x21BB;</button>
+      <button id="refreshBtn" class="btn ghost" title="Actualizar datos" type="button">&#x21BB;</button>
     </div>
   </header>
 
-  <main class="container">
-
-    <section class="controls card">
-      <div class="status-badge">
-        <span class="status-dot"></span>
-        <span>Modulo activo: inventario de productos automotrices</span>
-      </div>
-
-      <h1 id="viewTitle">Gestion de productos automotrices</h1>
-      <p id="viewDescription" class="muted">
-        Desde aqui puedes consultar, buscar, insertar, editar y eliminar productos automotrices de tu inventario.
-      </p>
-
-      <div class="panel-toolbar">
-
-        <div class="field">
-          <label for="productsTable">Tabla detectada</label>
-          <div class="select-wrap">
-            <select id="productsTable"></select>
-          </div>
-          <div class="field-inline-help"></div>
+  <main class="panel-main">
+    <section class="panel-hero">
+      <article class="card">
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          <span id="moduleBadge">Módulo activo: Productos</span>
         </div>
 
-        <!-- ── Campo de busqueda con boton "Escanear" integrado ── -->
-        <div class="field field-wide">
-          <label for="searchInput">Buscar producto</label>
+        <h1 class="panel-title" id="moduleTitle">Gestión visual de productos</h1>
+
+        <p class="panel-description" id="moduleDescription">
+          Administra el inventario desde tarjetas visuales. Cada producto se muestra con su foto,
+          nombre, stock y precio. Al hacer clic en una tarjeta puedes ver y editar todos sus datos.
+        </p>
+
+        <div class="module-tabs">
+          <button type="button" class="module-tab active" data-module="productos">Productos</button>
+          <button type="button" class="module-tab" data-module="clientes">Clientes</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2 style="margin-top:0;color:var(--primary);" id="sideTitle">Administración de productos</h2>
+        <p class="panel-description" id="sideDescription">
+          Al registrar o editar productos, las categorías y proveedores se muestran por nombre,
+          pero se guardan internamente por su ID.
+        </p>
+      </article>
+    </section>
+
+    <section class="panel-summary">
+      <div class="summary-card">
+        <span class="summary-label" id="sumLabel1">Productos visibles</span>
+        <span class="summary-value" id="sumOne">0</span>
+        <span class="summary-help" id="sumHelp1">Registros filtrados actualmente.</span>
+      </div>
+
+      <div class="summary-card">
+        <span class="summary-label" id="sumLabel2">Unidades en inventario</span>
+        <span class="summary-value" id="sumTwo">0</span>
+        <span class="summary-help" id="sumHelp2">Suma del stock detectado.</span>
+      </div>
+
+      <div class="summary-card">
+        <span class="summary-label" id="sumLabel3">Stock bajo</span>
+        <span class="summary-value" id="sumThree">0</span>
+        <span class="summary-help" id="sumHelp3">Productos con stock menor o igual al mínimo.</span>
+      </div>
+
+      <div class="summary-card">
+        <span class="summary-label" id="sumLabel4">Agotados</span>
+        <span class="summary-value" id="sumFour">0</span>
+        <span class="summary-help" id="sumHelp4">Productos con stock en 0 o menos.</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="panel-toolbar">
+        <div class="field">
+          <label for="searchInput">Buscar</label>
           <div class="search-barcode-wrap">
             <input
               id="searchInput"
               type="text"
-              placeholder="Buscar por codigo, codigo de barras, nombre, marca..."
+              placeholder="Buscar por nombre, código, marca, categoría o cliente..."
               autocomplete="off"
             />
-            <button type="button" id="scanSearchBtn" class="btn btn-light scan-search-btn">
+            <button type="button" id="scanSearchBtn" class="btn btn-light">
               Escanear
             </button>
           </div>
         </div>
 
         <div class="field">
-          <label for="brandFilter">Marca</label>
+          <label for="brandFilter">Proveedor / marca</label>
           <input
             id="brandFilter"
             type="text"
-            placeholder="Ej: Bosch, NGK, Castrol"
+            placeholder="Ej: proveedor o marca..."
           />
         </div>
 
         <div class="field">
-          <label for="categoryFilter">Categoria</label>
+          <label for="categoryFilter">Categoría / ciudad</label>
           <input
             id="categoryFilter"
             type="text"
-            placeholder="Ej: Filtros, aceites, bujias"
+            placeholder="Ej: categoría o ciudad..."
           />
         </div>
 
-        <div class="field">
+        <div class="field" id="stockFilterField">
           <label for="stockFilter">Estado de stock</label>
           <div class="select-wrap">
             <select id="stockFilter">
@@ -331,132 +773,138 @@
           </div>
         </div>
 
-        <div class="field">
-          <label for="pageSize">Filas por pagina</label>
+        <div class="field" style="max-width: 120px;">
+          <label for="pageSize">Por página</label>
           <div class="select-wrap">
-            <select id="pageSize">
-              <option>10</option>
-              <option>25</option>
-              <option selected>50</option>
-              <option>100</option>
-              <option>200</option>
+            <select id="pageSize" style="width: 100px; height: 45px; padding: 2px 6px; font-size: 13px;">
+              <option>8</option>
+              <option selected>12</option>
+              <option>24</option>
+              <option>48</option>
             </select>
           </div>
         </div>
 
         <div class="field">
           <label>&nbsp;</label>
-          <button id="insertBtn" class="btn btn-light">+ Nuevo producto</button>
-        </div>
-
-      </div>
-
-      <div id="hint" class="hint-block">
-        Cargando configuracion del panel...
-      </div>
-    </section>
-
-    <section class="card">
-      <h2 style="margin-top:0;">Resumen rapido</h2>
-
-      <div class="panel-summary">
-        <div class="summary-card">
-          <span class="summary-label">Productos cargados</span>
-          <span class="summary-value" id="sumProducts">0</span>
-          <span class="summary-help">Registros visibles en la tabla seleccionada</span>
-        </div>
-
-        <div class="summary-card">
-          <span class="summary-label">Unidades en inventario</span>
-          <span class="summary-value" id="sumStock">0</span>
-          <span class="summary-help">Suma del stock detectado</span>
-        </div>
-
-        <div class="summary-card">
-          <span class="summary-label">Stock bajo</span>
-          <span class="summary-value" id="sumLowStock">0</span>
-          <span class="summary-help">Productos con stock menor o igual a 5</span>
-        </div>
-
-        <div class="summary-card">
-          <span class="summary-label">Agotados</span>
-          <span class="summary-value" id="sumOutStock">0</span>
-          <span class="summary-help">Productos con stock en 0</span>
+          <button id="insertBtn" class="btn primary" type="button">+ Nuevo producto</button>
         </div>
       </div>
     </section>
 
     <section class="card">
-      <h2 style="margin-top:0;">Listado de productos</h2>
+      <div class="cards-header">
+        <div>
+          <h2 id="itemsTitle">Productos registrados</h2>
+          <p id="itemsInfo">Cargando productos desde dbo.Productos...</p>
+        </div>
+      </div>
 
-      <div class="table-wrap">
-        <table id="grid" class="grid">
-          <thead></thead>
-          <tbody></tbody>
-        </table>
+      <div id="itemsGrid" class="items-grid">
+        <div class="empty-items">Cargando registros...</div>
       </div>
 
       <div class="pager">
-        <button id="prevBtn" class="btn ghost">&#9664;</button>
-        <span id="pageInfo" class="muted">Pagina 1/1</span>
-        <button id="nextBtn" class="btn ghost">&#9654;</button>
+        <button id="prevBtn" class="btn ghost" type="button">&#9664;</button>
+        <span id="pageInfo" class="muted">Página 1/1</span>
+        <button id="nextBtn" class="btn ghost" type="button">&#9654;</button>
       </div>
     </section>
   </main>
 
-  <!-- ── Modal: insertar producto ── -->
-  <dialog id="insertModal" class="modal">
-    <form id="insertForm" method="dialog" class="card">
-      <header class="modal-header">
-        <h3 id="insertTitle">Registrar nuevo producto automotriz</h3>
-        <button type="button" id="closeInsert" class="btn ghost">&#x2715;</button>
-      </header>
-
-      <div id="insertFields" class="grid-form"></div>
-
-      <footer class="modal-footer">
-        <button type="button" class="btn ghost" id="cancelInsert">Cancelar</button>
-        <button type="submit" class="btn primary">Guardar producto</button>
-      </footer>
-    </form>
-  </dialog>
-
-  <!-- ── Modal: visor de contenido ── -->
-  <dialog id="viewerModal" class="modal">
+  <dialog id="itemModal" class="modal item-modal">
     <div class="card">
       <header class="modal-header">
-        <h3 id="viewerTitle">Contenido</h3>
-        <button type="button" id="closeViewer" class="btn ghost">&#x2715;</button>
+        <div class="modal-header-title">
+          <h3 id="itemModalTitle">Detalle</h3>
+          <p id="itemModalSubtitle">Edita manualmente los datos del registro seleccionado.</p>
+        </div>
+
+        <button type="button" id="closeItemModal" class="btn ghost">&#x2715;</button>
       </header>
-      <pre id="viewerBody" class="viewer"></pre>
-      <footer class="modal-footer">
-        <button type="button" id="copyViewer" class="btn">Copiar</button>
-        <button type="button" id="okViewer" class="btn primary">OK</button>
-      </footer>
+
+      <div class="detail-layout">
+        <aside class="detail-side-card">
+          <div class="detail-image-wrap" id="detailVisualWrap">
+            <img
+              id="detailImage"
+              class="detail-image"
+              src="/img/productos/default.svg"
+              alt="Imagen del producto"
+            />
+          </div>
+
+          <div class="detail-side-info">
+            <strong id="detailSideTitle">Vista del registro</strong>
+            <span id="detailSideText">La información visual se genera automáticamente.</span>
+          </div>
+        </aside>
+
+        <section>
+          <form id="itemForm">
+            <div id="itemFields" class="grid-form-items"></div>
+
+            <footer class="modal-footer">
+              <button type="button" id="cancelItemEdit" class="btn ghost">Cancelar</button>
+              <button type="submit" class="btn primary">Guardar cambios</button>
+            </footer>
+          </form>
+
+          <div class="danger-zone">
+            <strong>Zona de eliminación</strong>
+            <p id="dangerText">
+              Esta acción borra el registro seleccionado. Si tiene relaciones en SQL Server,
+              la eliminación puede ser impedida.
+            </p>
+            <button id="deleteItemBtn" type="button" class="btn danger">Eliminar registro</button>
+          </div>
+        </section>
+      </div>
     </div>
   </dialog>
 
-  <!-- ── Modal: escaner de codigo de barras ── -->
+  <dialog id="insertModal" class="modal insert-modal">
+    <div class="card">
+      <header class="modal-header">
+        <div class="modal-header-title">
+          <h3 id="insertTitle">Registrar nuevo producto</h3>
+          <p id="insertSubtitle">Completa los datos del registro. El ID se genera automáticamente.</p>
+        </div>
+
+        <button type="button" id="closeInsert" class="btn ghost">&#x2715;</button>
+      </header>
+
+      <form id="insertForm">
+        <div id="insertFields" class="grid-form-items"></div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn ghost" id="cancelInsert">Cancelar</button>
+          <button type="submit" class="btn primary">Guardar</button>
+        </footer>
+      </form>
+    </div>
+  </dialog>
+
   <dialog id="scannerModal" class="modal">
     <div class="card">
       <header class="modal-header">
-        <h3 id="scannerModalTitle">Escanear codigo de barras</h3>
+        <h3 id="scannerModalTitle">Escanear código de barras</h3>
         <button type="button" id="closeScanner" class="btn ghost">&#x2715;</button>
       </header>
 
       <div class="field">
-        <label for="scannerCamera">Camara disponible</label>
+        <label for="scannerCamera">Cámara disponible</label>
         <div class="select-wrap">
           <select id="scannerCamera">
-            <option value="">Presiona "Cargar camaras"</option>
+            <option value="">Presiona "Cargar cámaras"</option>
           </select>
         </div>
       </div>
 
       <div class="buttons">
-        <button type="button" class="btn btn-light" id="loadScannerCameras">Cargar camaras</button>
-        <button type="button" class="btn primary" id="startScanner">Escanear codigo</button>
-        <button type="button" class="btn danger" id="stopScanner" style="display:none;">Detener camara</button>
+        <button type="button" class="btn btn-light" id="loadScannerCameras">Cargar cámaras</button>
+        <button type="button" class="btn primary" id="startScanner">Escanear código</button>
+        <button type="button" class="btn danger" id="stopScanner" style="display:none;">Detener cámara</button>
       </div>
 
       <div id="scannerContainer">
@@ -464,13 +912,11 @@
       </div>
 
       <div id="scannerResult" class="scanner-result"></div>
-      <!-- NUEVO: div de error igual al de kardex -->
       <div id="scannerError" class="scanner-error"></div>
 
       <p class="scanner-help">
-        Abri DroidCam primero. Luego carga las camaras, selecciona <strong>DroidCam Video</strong>
-        y presiona <strong>Escanear codigo</strong>. El codigo detectado se colocara automaticamente
-        en el campo de busqueda.
+        Abre DroidCam primero. Luego carga las cámaras, selecciona la cámara disponible
+        y presiona <strong>Escanear código</strong>.
       </p>
 
       <footer class="modal-footer">
@@ -482,550 +928,1298 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script>
-    /* ════════════════════════════════════════════════
-       REFERENCIAS AL DOM
-    ════════════════════════════════════════════════ */
-    const productsTableSel  = document.getElementById('productsTable');
-    const refreshBtn        = document.getElementById('refreshBtn');
-    const searchInput       = document.getElementById('searchInput');
-    const scanSearchBtn     = document.getElementById('scanSearchBtn');
-    const brandFilter       = document.getElementById('brandFilter');
-    const categoryFilter    = document.getElementById('categoryFilter');
-    const stockFilter       = document.getElementById('stockFilter');
-    const pageSizeSel       = document.getElementById('pageSize');
-    const insertBtn         = document.getElementById('insertBtn');
-    const hint              = document.getElementById('hint');
+    const DEFAULT_IMAGE = '/img/productos/default.svg';
 
-    const grid              = document.getElementById('grid');
-    const thead             = grid.querySelector('thead');
-    const tbody             = grid.querySelector('tbody');
-    const prevBtn           = document.getElementById('prevBtn');
-    const nextBtn           = document.getElementById('nextBtn');
-    const pageInfo          = document.getElementById('pageInfo');
+    const moduleBadge = document.getElementById('moduleBadge');
+    const moduleTitle = document.getElementById('moduleTitle');
+    const moduleDescription = document.getElementById('moduleDescription');
+    const sideTitle = document.getElementById('sideTitle');
+    const sideDescription = document.getElementById('sideDescription');
 
-    const sumProducts       = document.getElementById('sumProducts');
-    const sumStock          = document.getElementById('sumStock');
-    const sumLowStock       = document.getElementById('sumLowStock');
-    const sumOutStock       = document.getElementById('sumOutStock');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const searchInput = document.getElementById('searchInput');
+    const scanSearchBtn = document.getElementById('scanSearchBtn');
+    const brandFilter = document.getElementById('brandFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const stockFilter = document.getElementById('stockFilter');
+    const stockFilterField = document.getElementById('stockFilterField');
+    const pageSizeSel = document.getElementById('pageSize');
+    const insertBtn = document.getElementById('insertBtn');
 
-    const insertModal       = document.getElementById('insertModal');
-    const insertForm        = document.getElementById('insertForm');
-    const insertFields      = document.getElementById('insertFields');
-    const insertTitle       = document.getElementById('insertTitle');
-    const closeInsert       = document.getElementById('closeInsert');
-    const cancelInsert      = document.getElementById('cancelInsert');
+    const itemsTitle = document.getElementById('itemsTitle');
+    const itemsInfo = document.getElementById('itemsInfo');
+    const itemsGrid = document.getElementById('itemsGrid');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageInfo = document.getElementById('pageInfo');
 
-    const viewerModal       = document.getElementById('viewerModal');
-    const viewerTitle       = document.getElementById('viewerTitle');
-    const viewerBody        = document.getElementById('viewerBody');
-    const closeViewer       = document.getElementById('closeViewer');
-    const okViewer          = document.getElementById('okViewer');
-    const copyViewer        = document.getElementById('copyViewer');
+    const sumLabel1 = document.getElementById('sumLabel1');
+    const sumLabel2 = document.getElementById('sumLabel2');
+    const sumLabel3 = document.getElementById('sumLabel3');
+    const sumLabel4 = document.getElementById('sumLabel4');
+    const sumOne = document.getElementById('sumOne');
+    const sumTwo = document.getElementById('sumTwo');
+    const sumThree = document.getElementById('sumThree');
+    const sumFour = document.getElementById('sumFour');
+    const sumHelp1 = document.getElementById('sumHelp1');
+    const sumHelp2 = document.getElementById('sumHelp2');
+    const sumHelp3 = document.getElementById('sumHelp3');
+    const sumHelp4 = document.getElementById('sumHelp4');
 
-    const scannerModal      = document.getElementById('scannerModal');
+    const itemModal = document.getElementById('itemModal');
+    const closeItemModal = document.getElementById('closeItemModal');
+    const cancelItemEdit = document.getElementById('cancelItemEdit');
+    const itemForm = document.getElementById('itemForm');
+    const itemFields = document.getElementById('itemFields');
+    const itemModalTitle = document.getElementById('itemModalTitle');
+    const itemModalSubtitle = document.getElementById('itemModalSubtitle');
+    const detailVisualWrap = document.getElementById('detailVisualWrap');
+    const detailImage = document.getElementById('detailImage');
+    const detailSideTitle = document.getElementById('detailSideTitle');
+    const detailSideText = document.getElementById('detailSideText');
+    const dangerText = document.getElementById('dangerText');
+    const deleteItemBtn = document.getElementById('deleteItemBtn');
+
+    const insertModal = document.getElementById('insertModal');
+    const insertForm = document.getElementById('insertForm');
+    const insertFields = document.getElementById('insertFields');
+    const insertTitle = document.getElementById('insertTitle');
+    const insertSubtitle = document.getElementById('insertSubtitle');
+    const closeInsert = document.getElementById('closeInsert');
+    const cancelInsert = document.getElementById('cancelInsert');
+
+    const scannerModal = document.getElementById('scannerModal');
     const scannerModalTitle = document.getElementById('scannerModalTitle');
-    const scannerCamera     = document.getElementById('scannerCamera');
-    const scannerContainer  = document.getElementById('scannerContainer');
-    const scannerResult     = document.getElementById('scannerResult');
-    const scannerError      = document.getElementById('scannerError');
-    const closeScanner      = document.getElementById('closeScanner');
-    const cancelScanner     = document.getElementById('cancelScanner');
+    const scannerCamera = document.getElementById('scannerCamera');
+    const scannerContainer = document.getElementById('scannerContainer');
+    const scannerResult = document.getElementById('scannerResult');
+    const scannerError = document.getElementById('scannerError');
+    const closeScanner = document.getElementById('closeScanner');
+    const cancelScanner = document.getElementById('cancelScanner');
     const loadScannerCameras = document.getElementById('loadScannerCameras');
-    const startScanner      = document.getElementById('startScanner');
-    const stopScanner       = document.getElementById('stopScanner');
+    const startScanner = document.getElementById('startScanner');
+    const stopScanner = document.getElementById('stopScanner');
 
-    const toast             = document.getElementById('toast');
+    const toast = document.getElementById('toast');
 
-    /* ════════════════════════════════════════════════
-       ESTADO GLOBAL
-    ════════════════════════════════════════════════ */
-    let allRows             = [];
-    let columns             = [];
-    let page                = 1;
-    let currentSchema       = '';
-    let currentTable        = '';
-    let pkColumn            = '';
-    let brandColumn         = '';
-    let categoryColumn      = '';
-    let stockColumn         = '';
-    let barcodeColumn       = '';
+    let currentModule = 'productos';
+    let tablesCatalog = [];
 
-    // El escaner puede apuntar al searchInput o a un input de fila/formulario
-    let scannerTargetInput  = null;
-    // Cuando es true el resultado del escaneo se pone en searchInput y dispara buildBody
-    let scannerIsForSearch  = false;
+    let rows = {
+      productos: [],
+      clientes: []
+    };
 
-    let scannerActivo       = false;
-    let ultimoCodigo        = null;
-    let repeticiones        = 0;
+    let columnsByModule = {
+      productos: [],
+      clientes: []
+    };
 
+    let lookups = {
+      proveedores: { rows: [], idCol: '', labelCol: '', map: new Map() },
+      categorias: { rows: [], idCol: '', labelCol: '', map: new Map() }
+    };
+
+    let page = 1;
+    let selectedItem = null;
+    let scannerTargetInput = null;
+    let scannerIsForSearch = false;
+    let scannerActivo = false;
+    let ultimoCodigo = null;
+    let repeticiones = 0;
     let initialSearchApplied = false;
 
-    /* ════════════════════════════════════════════════
-       HELPERS GENERALES
-    ════════════════════════════════════════════════ */
+    const moduleConfig = {
+      productos: {
+        schema: 'dbo',
+        table: 'Productos',
+        title: 'Gestión visual de productos',
+        badge: 'Módulo activo: Productos',
+        description: 'Administra el inventario desde tarjetas visuales. Cada producto se muestra con su foto, nombre, stock y precio.',
+        sideTitle: 'Administración de productos',
+        sideDescription: 'Al registrar o editar productos, las categorías y proveedores se muestran por nombre, pero se guardan internamente por su ID.',
+        insertTitle: 'Registrar nuevo producto',
+        insertSubtitle: 'Completa los datos del producto. El ID se genera automáticamente.',
+        itemsTitle: 'Productos registrados',
+        searchPlaceholder: 'Buscar por nombre, código, proveedor o categoría...',
+        newButton: '+ Nuevo producto',
+        dangerText: 'Esta acción borra el producto seleccionado. Si tiene movimientos relacionados, SQL Server puede impedir la eliminación.',
+        fallbackColumns: [
+          'IDProducto',
+          'Nombre',
+          'IDProveedor',
+          'IDCategoría',
+          'CantidadPorUnidad',
+          'PrecioUnitario',
+          'UnidadesEnStock',
+          'UnidadesEnPedido',
+          'NivelDeReorden',
+          'Descontinuado',
+          'CodigoBarra'
+        ]
+      },
+      clientes: {
+        schema: 'dbo',
+        table: 'Clientes',
+        title: 'Gestión visual de clientes',
+        badge: 'Módulo activo: Clientes',
+        description: 'Administra los clientes registrados. Cada cliente se muestra como tarjeta y puede editarse manualmente.',
+        sideTitle: 'Administración de clientes',
+        sideDescription: 'Aquí puedes registrar, editar y eliminar clientes de la base de datos.',
+        insertTitle: 'Registrar nuevo cliente',
+        insertSubtitle: 'Completa los datos del cliente. El ID se genera automáticamente.',
+        itemsTitle: 'Clientes registrados',
+        searchPlaceholder: 'Buscar por nombre, empresa, contacto, ciudad o teléfono...',
+        newButton: '+ Nuevo cliente',
+        dangerText: 'Esta acción borra el cliente seleccionado. Si tiene ventas relacionadas, SQL Server puede impedir la eliminación.',
+        fallbackColumns: [
+          'IDCliente',
+          'Nombre',
+          'NombreCompañía',
+          'NombreContacto',
+          'CargoContacto',
+          'Dirección',
+          'Ciudad',
+          'Región',
+          'CódigoPostal',
+          'País',
+          'Teléfono',
+          'Fax'
+        ]
+      }
+    };
+
+    const moduleColumns = {
+      productos: {
+        pk: 'IDProducto',
+        name: 'Nombre',
+        provider: 'IDProveedor',
+        category: 'IDCategoría',
+        stock: 'UnidadesEnStock',
+        price: 'PrecioUnitario',
+        barcode: 'CodigoBarra',
+        reorder: 'NivelDeReorden'
+      },
+      clientes: {
+        pk: 'IDCliente',
+        name: 'NombreCompañía',
+        contact: 'NombreContacto',
+        city: 'Ciudad',
+        country: 'País',
+        phone: 'Teléfono'
+      }
+    };
+
     function normalizeText(value) {
       return (value ?? '')
-        .toString().trim().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
     }
 
     function normalizeColumnName(value) {
       return normalizeText(value).replace(/[\s_]/g, '');
     }
 
-    function labelFor(schema, table) {
-      return schema.toLowerCase() === 'dbo' ? table : schema + '.' + table;
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     function showToast(message, ok = true) {
       toast.textContent = message;
-      toast.className   = 'toast ' + (ok ? 'ok' : 'err');
+      toast.className = 'toast ' + (ok ? 'ok' : 'err');
       toast.style.opacity = 1;
-      setTimeout(() => { toast.style.opacity = 0; }, 2200);
+
+      setTimeout(() => {
+        toast.style.opacity = 0;
+      }, 2400);
     }
 
     function safeNumber(value) {
       if (value === null || value === undefined || value === '') return 0;
+
       const cleaned = value.toString().replace(/[^0-9.-]/g, '');
       const num = Number(cleaned);
+
       return Number.isFinite(num) ? num : 0;
     }
 
-    function getQueryParam(name) {
-      return new URLSearchParams(window.location.search).get(name) || '';
+    function formatMoney(value) {
+      const number = Number(value) || 0;
+
+      return '$ ' + number.toLocaleString('es-NI', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
     }
 
-    function applyInitialSearchParam() {
-      if (initialSearchApplied) return;
-      const query = getQueryParam('search').trim();
-      if (!query) { initialSearchApplied = true; return; }
-      searchInput.value = query;
-      page = 1;
-      initialSearchApplied = true;
-      buildBody();
-      hint.textContent += ' Busqueda aplicada desde el menu: "' + query + '".';
-    }
+    function friendlyColumnName(column) {
+      const aliases = {
+        IDProducto: 'ID del producto',
+        IDCliente: 'ID del cliente',
+        Nombre: 'Nombre',
+        IDProveedor: 'Proveedor',
+        IDCategoría: 'Categoría',
+        IDCategoria: 'Categoría',
+        CantidadPorUnidad: 'Cantidad por unidad',
+        PrecioUnitario: 'Precio unitario',
+        UnidadesEnStock: 'Unidades en stock',
+        UnidadesEnPedido: 'Unidades en pedido',
+        NivelDeReorden: 'Nivel de reorden',
+        Descontinuado: 'Descontinuado',
+        CodigoBarra: 'Código de barra',
+        NombreCompañía: 'Nombre de la compañía',
+        NombreCompania: 'Nombre de la compañía',
+        NombreContacto: 'Nombre del contacto',
+        CargoContacto: 'Cargo del contacto',
+        Dirección: 'Dirección',
+        Direccion: 'Dirección',
+        Ciudad: 'Ciudad',
+        Región: 'Región',
+        Region: 'Región',
+        CódigoPostal: 'Código postal',
+        CodigoPostal: 'Código postal',
+        País: 'País',
+        Pais: 'País',
+        Teléfono: 'Teléfono',
+        Telefono: 'Teléfono'
+      };
 
-    /* ════════════════════════════════════════════════
-       VISOR DE CONTENIDO
-    ════════════════════════════════════════════════ */
-    function openViewer(title, content) {
-      viewerTitle.textContent = title;
-      viewerBody.textContent  = (content ?? '').toString();
-      viewerModal.showModal();
-    }
-
-    [closeViewer, okViewer].forEach(btn => { btn.onclick = () => viewerModal.close(); });
-
-    copyViewer.onclick = async () => {
-      try {
-        await navigator.clipboard.writeText(viewerBody.textContent);
-        showToast('Contenido copiado');
-      } catch {
-        showToast('No se pudo copiar', false);
+      if (aliases[column]) {
+        return aliases[column];
       }
-    };
 
-    /* ════════════════════════════════════════════════
-       DETECCION DE COLUMNAS
-    ════════════════════════════════════════════════ */
-    function findColumnByPatterns(patterns) {
-      for (const col of columns) {
-        const n = normalizeColumnName(col);
-        for (const p of patterns) {
-          if (n.includes(p)) return col;
-        }
+      return String(column)
+        .replace(/([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])/g, '$1 $2')
+        .replace(/_/g, ' ')
+        .trim();
+    }
+
+    function findColumn(columns, patterns) {
+      const normalizedColumns = columns.map(column => ({
+        original: column,
+        normalized: normalizeColumnName(column)
+      }));
+
+      for (const pattern of patterns) {
+        const exact = normalizedColumns.find(column => column.normalized === pattern);
+        if (exact) return exact.original;
       }
+
+      for (const pattern of patterns) {
+        const partial = normalizedColumns.find(column => column.normalized.includes(pattern));
+        if (partial) return partial.original;
+      }
+
       return '';
     }
 
-    function isBarcodeColumn(col) {
-      const n = normalizeColumnName(col);
-      return ['codigobarra','codigodebarra','barcode','barras','upc','ean'].some(p => n.includes(p));
+    function getColumns() {
+      return columnsByModule[currentModule] || [];
     }
 
-    function detectImportantColumns() {
-      pkColumn = findColumnByPatterns([
-        'idproducto','productoid','idrepuesto','idarticulo','iditem',
-        'idinventario','id','codigoproducto','codproducto','codigo','sku'
-      ]) || columns[0] || '';
-
-      brandColumn    = findColumnByPatterns(['marca','brand','fabricante']);
-      categoryColumn = findColumnByPatterns(['categoria','tipo','linea','familia','rubro','grupo']);
-      stockColumn    = findColumnByPatterns(['stockactual','stock','existencia','cantidad','disponible','inventario']);
-      barcodeColumn  = findColumnByPatterns(['codigobarra','codigodebarra','barcode','barras','upc','ean']);
+    function getConfig() {
+      return moduleConfig[currentModule];
     }
 
-    /* ════════════════════════════════════════════════
-       CONSTRUCCION DE TABLA
-    ════════════════════════════════════════════════ */
-    function buildHead() {
-      thead.innerHTML = '';
-      const tr = document.createElement('tr');
-      columns.forEach(col => {
-        const th = document.createElement('th');
-        th.textContent = col;
-        tr.appendChild(th);
+    function getModuleRows() {
+      return rows[currentModule] || [];
+    }
+
+    function getColumnAliases() {
+      return moduleColumns[currentModule] || {};
+    }
+
+    function updateDetectedColumns() {
+      const cols = getColumns();
+
+      if (currentModule === 'productos') {
+        moduleColumns.productos.pk = findColumn(cols, ['idproducto', 'productoid', 'id']) || 'IDProducto';
+        moduleColumns.productos.name = findColumn(cols, ['nombre', 'nombreproducto', 'descripcion', 'producto']) || 'Nombre';
+        moduleColumns.productos.provider = findColumn(cols, ['idproveedor', 'proveedorid']) || 'IDProveedor';
+        moduleColumns.productos.category = findColumn(cols, ['idcategoria', 'idcategoría', 'categoriaid']) || 'IDCategoría';
+        moduleColumns.productos.stock = findColumn(cols, ['unidadesenstock', 'stock', 'existencia']) || 'UnidadesEnStock';
+        moduleColumns.productos.price = findColumn(cols, ['preciounitario', 'precio', 'costo']) || 'PrecioUnitario';
+        moduleColumns.productos.barcode = findColumn(cols, ['codigobarra', 'codigodebarra', 'barcode', 'ean', 'upc']) || 'CodigoBarra';
+        moduleColumns.productos.reorder = findColumn(cols, ['niveldereorden', 'reorden', 'stockminimo']) || 'NivelDeReorden';
+      }
+
+      if (currentModule === 'clientes') {
+        moduleColumns.clientes.pk = findColumn(cols, ['idcliente', 'clienteid', 'id']) || cols[0] || 'IDCliente';
+        moduleColumns.clientes.name = findColumn(cols, ['nombrecompania', 'nombrecompañia', 'empresa', 'nombre']) || 'NombreCompañía';
+        moduleColumns.clientes.contact = findColumn(cols, ['nombrecontacto', 'contacto']) || '';
+        moduleColumns.clientes.city = findColumn(cols, ['ciudad', 'city']) || '';
+        moduleColumns.clientes.country = findColumn(cols, ['pais', 'país', 'country']) || '';
+        moduleColumns.clientes.phone = findColumn(cols, ['telefono', 'teléfono', 'phone']) || '';
+      }
+    }
+
+    function findTableByNames(names) {
+      for (const name of names) {
+        const wanted = normalizeText(name);
+        const found = tablesCatalog.find(table =>
+          normalizeText(table.table_name) === wanted ||
+          normalizeText(table.schema_name + '.' + table.table_name) === wanted
+        );
+
+        if (found) return found;
+      }
+
+      return null;
+    }
+
+    async function fetchTablesCatalog() {
+      const response = await fetch(`/api/tables?t=${Date.now()}`, {
+        cache: 'no-store',
+        credentials: 'include'
       });
-      const th = document.createElement('th');
-      th.textContent = 'Acciones';
-      tr.appendChild(th);
-      thead.appendChild(tr);
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'No se pudieron cargar las tablas.');
+      }
+
+      tablesCatalog = Array.isArray(data) ? data : [];
     }
 
-    function getSelectedTableParts() {
-      const parts = (productsTableSel.value || '').split('|');
-      return { schema: parts[0] || '', table: parts[1] || '' };
+    async function fetchTable(schema, table, top = 500) {
+      const response = await fetch(`/api/table/${encodeURIComponent(schema)}/${encodeURIComponent(table)}?top=${top}&t=${Date.now()}`, {
+        cache: 'no-store',
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `No se pudo cargar ${schema}.${table}.`);
+      }
+
+      return Array.isArray(data) ? data : [];
     }
 
-    function makeEditableControl(col, value) {
-      const input = document.createElement('input');
-      input.type      = 'text';
-      input.className = 'table-input';
-      input.value     = (value ?? '').toString();
-      input.dataset.col = col;
+    function buildLookup(rowsList, type) {
+      const cols = rowsList.length ? Object.keys(rowsList[0]) : [];
 
-      if (!isBarcodeColumn(col)) return input;
+      let idCol = '';
+      let labelCol = '';
 
-      const wrap    = document.createElement('div');
-      wrap.className = 'barcode-control';
-      const scanBtn = document.createElement('button');
-      scanBtn.type      = 'button';
-      scanBtn.className = 'btn small scan-barcode-btn';
-      scanBtn.textContent = 'Escanear';
-      scanBtn.onclick = () => openScannerForInput(input, false);
-      wrap.appendChild(input);
-      wrap.appendChild(scanBtn);
-      return wrap;
+      if (type === 'proveedores') {
+        idCol = findColumn(cols, ['idproveedor', 'proveedorid', 'id']) || cols[0] || '';
+        labelCol = findColumn(cols, [
+          'nombrecompania',
+          'nombrecompañia',
+          'nombreproveedor',
+          'proveedor',
+          'empresa',
+          'nombre'
+        ]) || cols.find(col => col !== idCol) || '';
+      }
+
+      if (type === 'categorias') {
+        idCol = findColumn(cols, ['idcategoria', 'idcategoría', 'categoriaid', 'id']) || cols[0] || '';
+        labelCol = findColumn(cols, [
+          'nombrecategoria',
+          'nombrecategoría',
+          'categoria',
+          'categoría',
+          'nombre',
+          'descripcion'
+        ]) || cols.find(col => col !== idCol) || '';
+      }
+
+      const map = new Map();
+
+      rowsList.forEach(row => {
+        const id = String(row[idCol] ?? '');
+        const label = String(row[labelCol] ?? id);
+        if (id) map.set(id, label);
+      });
+
+      lookups[type] = {
+        rows: rowsList,
+        idCol,
+        labelCol,
+        map
+      };
+    }
+
+    async function loadLookups() {
+      const proveedoresTable = findTableByNames(['Proveedores', 'Proveedor', 'Distribuidores', 'Distribuidores']);
+      const categoriasTable = findTableByNames(['Categorías', 'Categorias', 'Categoria', 'Categoría']);
+
+      if (proveedoresTable) {
+        const proveedores = await fetchTable(proveedoresTable.schema_name, proveedoresTable.table_name, 500);
+        buildLookup(proveedores, 'proveedores');
+      }
+
+      if (categoriasTable) {
+        const categorias = await fetchTable(categoriasTable.schema_name, categoriasTable.table_name, 500);
+        buildLookup(categorias, 'categorias');
+      }
+    }
+
+    async function loadModule(moduleName) {
+      const config = moduleConfig[moduleName];
+      const table = findTableByNames([config.table, `${config.schema}.${config.table}`]) || config;
+
+      const data = await fetchTable(table.schema_name || config.schema, table.table_name || config.table, 500);
+
+      rows[moduleName] = data;
+      columnsByModule[moduleName] = data.length ? Object.keys(data[0]) : config.fallbackColumns;
+    }
+
+    async function loadAllData() {
+      await fetchTablesCatalog();
+      await loadLookups();
+      await loadModule('productos');
+      await loadModule('clientes');
+      switchModule(currentModule);
+    }
+
+    function getLookupLabel(type, id) {
+      const value = String(id ?? '');
+      if (!value) return 'Sin asignar';
+
+      return lookups[type]?.map?.get(value) || `ID ${value}`;
+    }
+
+    function getProductImage(product) {
+      const id = product?.[moduleColumns.productos.pk];
+
+      if (!id) return DEFAULT_IMAGE;
+
+      return `/img/productos/${encodeURIComponent(id)}.jpg`;
+    }
+
+    window.handleProductImageError = function(img) {
+      const id = img.dataset.productId;
+      const stage = img.dataset.stage || 'jpg';
+
+      if (!id) {
+        img.onerror = null;
+        img.src = DEFAULT_IMAGE;
+        return;
+      }
+
+      if (stage === 'jpg') {
+        img.dataset.stage = 'png';
+        img.src = `/img/productos/${encodeURIComponent(id)}.png`;
+        return;
+      }
+
+      if (stage === 'png') {
+        img.dataset.stage = 'webp';
+        img.src = `/img/productos/${encodeURIComponent(id)}.webp`;
+        return;
+      }
+
+      img.onerror = null;
+      img.src = DEFAULT_IMAGE;
+    };
+
+    function getInitials(value) {
+      const text = String(value || 'CL').trim();
+
+      if (!text) return 'CL';
+
+      return text
+        .split(/\s+/)
+        .slice(0, 2)
+        .map(part => part[0])
+        .join('')
+        .toUpperCase();
+    }
+
+    function isBarcodeColumn(column) {
+      const normalized = normalizeColumnName(column);
+
+      return [
+        'codigobarra',
+        'codigodebarra',
+        'barcode',
+        'barras',
+        'upc',
+        'ean'
+      ].some(pattern => normalized.includes(pattern));
+    }
+
+    function isBooleanColumn(column) {
+      const normalized = normalizeColumnName(column);
+
+      return [
+        'descontinuado',
+        'activo',
+        'estado',
+        'disponible'
+      ].some(pattern => normalized === pattern || normalized.includes(pattern));
+    }
+
+    function isNumericColumn(column) {
+      const normalized = normalizeColumnName(column);
+
+      if (
+        normalized.includes('codigo') ||
+        normalized.includes('barra') ||
+        normalized.includes('telefono') ||
+        normalized.includes('fax') ||
+        normalized.includes('postal')
+      ) {
+        return false;
+      }
+
+      return [
+        'idproducto',
+        'idproveedor',
+        'idcategoria',
+        'idcliente',
+        'stock',
+        'existencia',
+        'cantidad',
+        'unidades',
+        'precio',
+        'costo',
+        'reorden',
+        'minimo',
+        'maximo',
+        'pedido'
+      ].some(pattern => normalized.includes(pattern));
+    }
+
+    function isDateColumn(column) {
+      const normalized = normalizeColumnName(column);
+      return normalized.includes('fecha') || normalized.includes('date');
+    }
+
+    function getInputType(column) {
+      if (isNumericColumn(column)) return 'number';
+      if (isDateColumn(column)) return 'date';
+      return 'text';
+    }
+
+    function getPkColumn() {
+      return getColumnAliases().pk;
+    }
+
+    function getNameColumn() {
+      return getColumnAliases().name;
     }
 
     function getFilteredRows() {
-      const term         = normalizeText(searchInput.value);
-      const brandTerm    = normalizeText(brandFilter.value);
+      const term = normalizeText(searchInput.value);
+      const brandTerm = normalizeText(brandFilter.value);
       const categoryTerm = normalizeText(categoryFilter.value);
-      const stockState   = stockFilter.value;
+      const stockState = stockFilter.value;
+      const dataRows = getModuleRows();
+      const cols = getColumns();
+      const aliases = getColumnAliases();
 
-      let filtered = [...allRows];
+      let filtered = [...dataRows];
 
-      if (brandTerm && brandColumn)
-        filtered = filtered.filter(r => normalizeText(r[brandColumn]).includes(brandTerm));
+      if (currentModule === 'productos') {
+        if (brandTerm) {
+          filtered = filtered.filter(row => {
+            const providerLabel = getLookupLabel('proveedores', row[aliases.provider]);
+            return normalizeText(providerLabel).includes(brandTerm);
+          });
+        }
 
-      if (categoryTerm && categoryColumn)
-        filtered = filtered.filter(r => normalizeText(r[categoryColumn]).includes(categoryTerm));
+        if (categoryTerm) {
+          filtered = filtered.filter(row => {
+            const categoryLabel = getLookupLabel('categorias', row[aliases.category]);
+            return normalizeText(categoryLabel).includes(categoryTerm);
+          });
+        }
 
-      if (stockState !== 'all' && stockColumn) {
-        filtered = filtered.filter(r => {
-          const s = safeNumber(r[stockColumn]);
-          if (stockState === 'in-stock')      return s > 0;
-          if (stockState === 'low-stock')     return s > 0 && s <= 5;
-          if (stockState === 'out-of-stock')  return s <= 0;
-          return true;
-        });
+        if (stockState !== 'all') {
+          filtered = filtered.filter(row => {
+            const stock = safeNumber(row[aliases.stock]);
+
+            if (stockState === 'in-stock') return stock > 0;
+            if (stockState === 'low-stock') return stock > 0 && stock <= 5;
+            if (stockState === 'out-of-stock') return stock <= 0;
+
+            return true;
+          });
+        }
       }
 
-      if (term)
-        filtered = filtered.filter(r =>
-          columns.some(col => normalizeText(r[col]).includes(term))
-        );
+      if (currentModule === 'clientes') {
+        if (brandTerm) {
+          filtered = filtered.filter(row =>
+            normalizeText(row[aliases.name]).includes(brandTerm) ||
+            normalizeText(row[aliases.contact]).includes(brandTerm)
+          );
+        }
+
+        if (categoryTerm) {
+          filtered = filtered.filter(row =>
+            normalizeText(row[aliases.city]).includes(categoryTerm) ||
+            normalizeText(row[aliases.country]).includes(categoryTerm)
+          );
+        }
+      }
+
+      if (term) {
+        filtered = filtered.filter(row => {
+          const directMatch = cols.some(column => normalizeText(row[column]).includes(term));
+
+          if (directMatch) return true;
+
+          if (currentModule === 'productos') {
+            return (
+              normalizeText(getLookupLabel('proveedores', row[aliases.provider])).includes(term) ||
+              normalizeText(getLookupLabel('categorias', row[aliases.category])).includes(term)
+            );
+          }
+
+          return false;
+        });
+      }
 
       return filtered;
     }
 
-    function updateSummary(rows) {
-      sumProducts.textContent = rows.length.toString();
-      if (!stockColumn) {
-        sumStock.textContent    = '0';
-        sumLowStock.textContent = '0';
-        sumOutStock.textContent = '0';
+    function updateSummary(filteredRows) {
+      if (currentModule === 'productos') {
+        const aliases = moduleColumns.productos;
+        const totalStock = filteredRows.reduce((acc, row) => acc + safeNumber(row[aliases.stock]), 0);
+        const lowStock = filteredRows.filter(row => {
+          const stock = safeNumber(row[aliases.stock]);
+          const reorder = safeNumber(row[aliases.reorder]) || 5;
+          return stock > 0 && stock <= reorder;
+        }).length;
+        const outStock = filteredRows.filter(row => safeNumber(row[aliases.stock]) <= 0).length;
+
+        sumLabel1.textContent = 'Productos visibles';
+        sumLabel2.textContent = 'Unidades en inventario';
+        sumLabel3.textContent = 'Stock bajo';
+        sumLabel4.textContent = 'Agotados';
+
+        sumOne.textContent = filteredRows.length.toString();
+        sumTwo.textContent = totalStock.toString();
+        sumThree.textContent = lowStock.toString();
+        sumFour.textContent = outStock.toString();
+
+        sumHelp1.textContent = 'Registros filtrados actualmente.';
+        sumHelp2.textContent = 'Suma del stock detectado.';
+        sumHelp3.textContent = 'Productos con stock menor o igual al mínimo.';
+        sumHelp4.textContent = 'Productos con stock en 0 o menos.';
         return;
       }
-      sumStock.textContent    = rows.reduce((a, r) => a + safeNumber(r[stockColumn]), 0).toString();
-      sumLowStock.textContent = rows.filter(r => { const s = safeNumber(r[stockColumn]); return s > 0 && s <= 5; }).length.toString();
-      sumOutStock.textContent = rows.filter(r => safeNumber(r[stockColumn]) <= 0).length.toString();
+
+      const aliases = moduleColumns.clientes;
+      const withPhone = filteredRows.filter(row => String(row[aliases.phone] || '').trim()).length;
+      const withCity = filteredRows.filter(row => String(row[aliases.city] || '').trim()).length;
+      const countries = new Set(filteredRows.map(row => String(row[aliases.country] || '').trim()).filter(Boolean));
+
+      sumLabel1.textContent = 'Clientes visibles';
+      sumLabel2.textContent = 'Con teléfono';
+      sumLabel3.textContent = 'Con ciudad';
+      sumLabel4.textContent = 'Países';
+
+      sumOne.textContent = filteredRows.length.toString();
+      sumTwo.textContent = withPhone.toString();
+      sumThree.textContent = withCity.toString();
+      sumFour.textContent = countries.size.toString();
+
+      sumHelp1.textContent = 'Clientes filtrados actualmente.';
+      sumHelp2.textContent = 'Clientes con teléfono registrado.';
+      sumHelp3.textContent = 'Clientes con ciudad registrada.';
+      sumHelp4.textContent = 'Cantidad de países detectados.';
     }
 
-    function buildBody() {
-      tbody.innerHTML = '';
+    function renderItems() {
       const filteredRows = getFilteredRows();
+
       updateSummary(filteredRows);
 
-      const size       = parseInt(pageSizeSel.value, 10);
+      const size = parseInt(pageSizeSel.value, 10);
       const totalPages = Math.max(1, Math.ceil(filteredRows.length / size));
-      page             = Math.min(page, totalPages);
-      const start      = (page - 1) * size;
-      const pageRows   = filteredRows.slice(start, start + size);
 
-      pageInfo.textContent = 'Pagina ' + page + '/' + totalPages + ' - ' + filteredRows.length + ' registros';
+      page = Math.min(page, totalPages);
+
+      const start = (page - 1) * size;
+      const pageRows = filteredRows.slice(start, start + size);
+
+      pageInfo.textContent = `Página ${page}/${totalPages} - ${filteredRows.length} registro(s)`;
       prevBtn.disabled = page <= 1;
       nextBtn.disabled = page >= totalPages;
 
-      if (!columns.length) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 1;
-        td.innerHTML = '<div class="empty-state"><strong>No hay columnas para mostrar.</strong><span class="muted">Verifica la tabla seleccionada.</span></div>';
-        tr.appendChild(td); tbody.appendChild(tr);
-        return;
-      }
-
       if (!pageRows.length) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = columns.length + 1;
-        td.innerHTML = '<div class="empty-state"><strong>No se encontraron productos.</strong><span class="muted">Prueba cambiando los filtros o registra un nuevo producto.</span></div>';
-        tr.appendChild(td); tbody.appendChild(tr);
+        itemsGrid.innerHTML = `
+          <div class="empty-items" style="grid-column:1/-1;">
+            <strong>No se encontraron registros.</strong><br>
+            Prueba cambiando los filtros o registra un nuevo dato.
+          </div>
+        `;
         return;
       }
 
-      pageRows.forEach(row => {
-        const tr = document.createElement('tr');
+      if (currentModule === 'productos') {
+        renderProductCards(pageRows);
+        return;
+      }
 
-        columns.forEach(col => {
-          const td    = document.createElement('td');
-          const value = row[col] ?? '';
+      renderClientCards(pageRows);
+    }
 
-          if (col === pkColumn) {
-            td.textContent  = value;
-            td.className    = 'pk';
-            td.ondblclick   = () => openViewer(col, value);
-          } else {
-            const ctrl = makeEditableControl(col, value);
-            td.appendChild(ctrl);
-            const inp = td.querySelector('input[data-col]');
-            td.ondblclick = () => openViewer(col, inp ? inp.value : value);
-          }
-          tr.appendChild(td);
+    function renderProductCards(pageRows) {
+      const aliases = moduleColumns.productos;
+
+      itemsGrid.innerHTML = pageRows.map(product => {
+        const id = product[aliases.pk];
+        const name = product[aliases.name] || 'Producto sin nombre';
+        const barcode = product[aliases.barcode] || 'Sin código de barras';
+        const stock = safeNumber(product[aliases.stock]);
+        const price = safeNumber(product[aliases.price]);
+        const reorder = safeNumber(product[aliases.reorder]) || 5;
+        const provider = getLookupLabel('proveedores', product[aliases.provider]);
+        const category = getLookupLabel('categorias', product[aliases.category]);
+
+        let stockClass = 'stock-ok';
+        let stockText = `Stock ${stock}`;
+
+        if (stock <= 0) {
+          stockClass = 'stock-out';
+          stockText = 'Agotado';
+        } else if (stock <= reorder) {
+          stockClass = 'stock-low';
+        }
+
+        return `
+          <article
+            class="item-card"
+            role="button"
+            tabindex="0"
+            data-item-index="${getModuleRows().indexOf(product)}"
+          >
+            <div class="product-image-wrap">
+              <img
+                class="product-image"
+                src="${escapeHtml(getProductImage(product))}"
+                data-product-id="${escapeHtml(id)}"
+                data-stage="jpg"
+                onerror="handleProductImageError(this)"
+                alt="${escapeHtml(name)}"
+              />
+            </div>
+
+            <div class="item-card-body">
+              <h3 class="item-name" title="${escapeHtml(name)}">${escapeHtml(name)}</h3>
+
+              <div class="item-code">
+                Código: ${escapeHtml(barcode)}<br>
+                Proveedor: ${escapeHtml(provider)}<br>
+                Categoría: ${escapeHtml(category)}
+              </div>
+
+              <div class="item-meta">
+                <span class="stock-pill ${stockClass}">${escapeHtml(stockText)}</span>
+                <span class="price-text">${escapeHtml(formatMoney(price))}</span>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      bindCardEvents();
+    }
+
+    function renderClientCards(pageRows) {
+      const aliases = moduleColumns.clientes;
+
+      itemsGrid.innerHTML = pageRows.map(client => {
+        const name = client[aliases.name] || client[aliases.contact] || 'Cliente sin nombre';
+        const contact = client[aliases.contact] || 'Sin contacto';
+        const city = client[aliases.city] || 'Sin ciudad';
+        const country = client[aliases.country] || 'Sin país';
+        const phone = client[aliases.phone] || 'Sin teléfono';
+
+        return `
+          <article
+            class="item-card"
+            role="button"
+            tabindex="0"
+            data-item-index="${getModuleRows().indexOf(client)}"
+          >
+            <div class="client-avatar-wrap">
+              <div class="client-avatar">${escapeHtml(getInitials(name))}</div>
+            </div>
+
+            <div class="item-card-body">
+              <h3 class="item-name" title="${escapeHtml(name)}">${escapeHtml(name)}</h3>
+
+              <div class="item-code">
+                Contacto: ${escapeHtml(contact)}<br>
+                Ubicación: ${escapeHtml(city)} · ${escapeHtml(country)}<br>
+                Teléfono: ${escapeHtml(phone)}
+              </div>
+
+              <div class="item-meta">
+                <span class="info-pill info-ok">Cliente</span>
+                <span class="price-text">${escapeHtml(city)}</span>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      bindCardEvents();
+    }
+
+    function bindCardEvents() {
+      itemsGrid.querySelectorAll('.item-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const index = Number(card.dataset.itemIndex);
+          openItemDetail(getModuleRows()[index]);
         });
 
-        const actionsTd   = document.createElement('td');
-        actionsTd.className = 'actions-cell';
-        const actionsWrap = document.createElement('div');
-        actionsWrap.className = 'table-actions';
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter') {
+            const index = Number(card.dataset.itemIndex);
+            openItemDetail(getModuleRows()[index]);
+          }
+        });
+      });
+    }
 
-        const saveBtn   = document.createElement('button');
-        saveBtn.className = 'btn small primary';
-        saveBtn.textContent = 'Guardar';
+    function buildSelectControl(column, value) {
+      const normalized = normalizeColumnName(column);
+      let lookupType = '';
 
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn small danger';
-        deleteBtn.textContent = 'Borrar';
+      if (currentModule === 'productos' && normalized.includes('idproveedor')) {
+        lookupType = 'proveedores';
+      }
 
-        saveBtn.onclick = async () => {
-          try {
-            const changes = {};
-            tr.querySelectorAll('input[data-col]').forEach(inp => {
-              changes[inp.dataset.col] = inp.value.trim();
-            });
-            const res = await fetch('/api/table/' + currentSchema + '/' + currentTable, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ pkValue: row[pkColumn], changes })
-            });
-            const result = await res.json();
-            if (result.updated) {
-              columns.forEach(col => {
-                if (col !== pkColumn) {
-                  const inp = tr.querySelector('input[data-col="' + col + '"]');
-                  if (inp) row[col] = inp.value.trim();
-                }
-              });
-              buildBody();
-              showToast('Producto actualizado');
-            } else {
-              showToast(result.error || 'No se pudo actualizar', false);
-            }
-          } catch { showToast('Error al actualizar el producto', false); }
-        };
+      if (currentModule === 'productos' && (normalized.includes('idcategoria') || normalized.includes('idcategoría'))) {
+        lookupType = 'categorias';
+      }
 
-        deleteBtn.onclick = async () => {
-          const pkValue = row[pkColumn];
-          if (!confirm('Deseas borrar este producto?\n\n' + pkColumn + ': ' + pkValue)) return;
-          try {
-            const res = await fetch('/api/table/' + currentSchema + '/' + currentTable, {
-              method: 'DELETE',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ pkValue })
-            });
-            const result = await res.json();
-            if (result.deleted) {
-              allRows = allRows.filter(item => item[pkColumn] !== pkValue);
-              buildBody();
-              showToast('Producto borrado');
-            } else {
-              showToast(result.error || 'No se pudo borrar', false);
-            }
-          } catch { showToast('Error al borrar el producto', false); }
-        };
+      if (!lookupType || !lookups[lookupType].rows.length) {
+        return null;
+      }
 
-        actionsWrap.appendChild(saveBtn);
-        actionsWrap.appendChild(deleteBtn);
-        actionsTd.appendChild(actionsWrap);
-        tr.appendChild(actionsTd);
-        tbody.appendChild(tr);
+      const select = document.createElement('select');
+      select.name = column;
+      select.dataset.col = column;
+
+      const emptyOption = document.createElement('option');
+      emptyOption.value = '';
+      emptyOption.textContent = 'Selecciona una opción';
+      select.appendChild(emptyOption);
+
+      lookups[lookupType].rows.forEach(row => {
+        const id = row[lookups[lookupType].idCol];
+        const label = row[lookups[lookupType].labelCol];
+
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = label || `ID ${id}`;
+
+        if (String(id) === String(value ?? '')) {
+          option.selected = true;
+        }
+
+        select.appendChild(option);
+      });
+
+      return select;
+    }
+
+    function buildFieldControl(column, value, isInsert = false) {
+      const wrap = document.createElement('div');
+      wrap.className = 'field';
+
+      const pkColumn = getPkColumn();
+
+      const label = document.createElement('label');
+      label.textContent = column === pkColumn
+        ? `${friendlyColumnName(column)} - no editable`
+        : friendlyColumnName(column);
+
+      wrap.appendChild(label);
+
+      if (column !== pkColumn) {
+        const selectControl = buildSelectControl(column, value);
+
+        if (selectControl) {
+          wrap.appendChild(selectControl);
+          return wrap;
+        }
+      }
+
+      const input = document.createElement('input');
+      input.type = getInputType(column);
+      input.name = column;
+      input.dataset.col = column;
+      input.value = value ?? '';
+      input.placeholder = friendlyColumnName(column);
+      input.disabled = column === pkColumn;
+
+      if (input.type === 'number') {
+        input.min = column === pkColumn ? '0' : getMinimumForColumn(column);
+        input.step = 'any';
+      }
+
+      if (isBarcodeColumn(column) && column !== pkColumn) {
+        const barcodeWrap = document.createElement('div');
+        barcodeWrap.className = 'barcode-control';
+
+        const scanBtn = document.createElement('button');
+        scanBtn.type = 'button';
+        scanBtn.className = 'btn btn-light';
+        scanBtn.textContent = 'Escanear';
+        scanBtn.addEventListener('click', () => openScannerForInput(input, false));
+
+        barcodeWrap.appendChild(input);
+        barcodeWrap.appendChild(scanBtn);
+        wrap.appendChild(barcodeWrap);
+      } else {
+        wrap.appendChild(input);
+      }
+
+      return wrap;
+    }
+
+    function buildItemFields(item) {
+      itemFields.innerHTML = '';
+
+      getColumns().forEach(column => {
+        const value = item[column] ?? '';
+        const field = buildFieldControl(column, value, false);
+
+        if (
+          normalizeColumnName(column).includes('descripcion') ||
+          normalizeColumnName(column).includes('detalle') ||
+          normalizeColumnName(column).includes('direccion') ||
+          normalizeColumnName(column).includes('dirección')
+        ) {
+          field.classList.add('field-full');
+        }
+
+        itemFields.appendChild(field);
       });
     }
 
     function buildInsertFields() {
       insertFields.innerHTML = '';
-      if (!columns.length) return;
 
-      columns.forEach(col => {
-        const wrap  = document.createElement('div');
-        wrap.className = 'field';
-        const label = document.createElement('label');
-        label.textContent = col + (col === pkColumn ? ' (autogenerado / PK)' : '');
-        const input = document.createElement('input');
-        input.type        = 'text';
-        input.name        = col;
-        input.placeholder = col === pkColumn ? 'No editar' : 'Escribe ' + col + '...';
-        if (col === pkColumn) input.disabled = true;
+      const pkColumn = getPkColumn();
 
-        wrap.appendChild(label);
+      getColumns().forEach(column => {
+        if (column === pkColumn) return;
 
-        if (isBarcodeColumn(col) && col !== pkColumn) {
-          const bWrap   = document.createElement('div');
-          bWrap.className = 'barcode-control';
-          const scanBtn = document.createElement('button');
-          scanBtn.type        = 'button';
-          scanBtn.className   = 'btn scan-barcode-btn';
-          scanBtn.textContent = 'Escanear';
-          scanBtn.onclick = () => openScannerForInput(input, false);
-          bWrap.appendChild(input);
-          bWrap.appendChild(scanBtn);
-          wrap.appendChild(bWrap);
-        } else {
-          wrap.appendChild(input);
+        const field = buildFieldControl(column, '', true);
+
+        if (
+          normalizeColumnName(column).includes('descripcion') ||
+          normalizeColumnName(column).includes('detalle') ||
+          normalizeColumnName(column).includes('direccion') ||
+          normalizeColumnName(column).includes('dirección')
+        ) {
+          field.classList.add('field-full');
         }
 
-        insertFields.appendChild(wrap);
+        insertFields.appendChild(field);
       });
     }
 
-    /* ════════════════════════════════════════════════
-       CARGA DE TABLAS Y DATOS
-    ════════════════════════════════════════════════ */
-    function detectProductTables(tables) {
-      const patterns = ['producto','productos','product','products','inventario','inventory',
-                        'repuesto','repuestos','articulo','articulos','item','items'];
-      return tables.filter(item => {
-        const full = normalizeText(item.schema_name + ' ' + item.table_name);
-        return patterns.some(p => full.includes(p));
-      });
-    }
+    function openItemDetail(item) {
+      selectedItem = item;
 
-    async function fetchTables() {
-      const res      = await fetch('/api/tables');
-      const data     = await res.json();
-      const detected = detectProductTables(data);
-      const list     = detected.length ? detected : data;
+      const aliases = getColumnAliases();
+      const pk = getPkColumn();
+      const nameColumn = getNameColumn();
+      const id = item[pk];
+      const name = item[nameColumn] || 'Registro seleccionado';
 
-      productsTableSel.innerHTML = '';
-      list.forEach(item => {
-        const opt   = document.createElement('option');
-        opt.value   = item.schema_name + '|' + item.table_name;
-        opt.textContent = labelFor(item.schema_name, item.table_name);
-        productsTableSel.appendChild(opt);
-      });
+      itemModalTitle.textContent = name;
+      itemModalSubtitle.textContent = `${friendlyColumnName(pk)}: ${id}`;
+      dangerText.textContent = getConfig().dangerText;
 
-      if (!list.length) {
-        hint.textContent = 'No se encontraron tablas disponibles.';
-        return false;
+      if (currentModule === 'productos') {
+        detailVisualWrap.innerHTML = `
+          <img
+            id="detailImage"
+            class="detail-image"
+            src="${escapeHtml(getProductImage(item))}"
+            data-product-id="${escapeHtml(id)}"
+            data-stage="jpg"
+            onerror="handleProductImageError(this)"
+            alt="${escapeHtml(name)}"
+          />
+        `;
+
+        detailSideTitle.textContent = 'Foto del producto';
+        detailSideText.textContent = 'La imagen se ajusta completa automáticamente, sin recortarse ni hacer zoom.';
+      } else {
+        detailVisualWrap.innerHTML = `
+          <div class="detail-avatar">${escapeHtml(getInitials(name))}</div>
+        `;
+
+        detailSideTitle.textContent = 'Perfil del cliente';
+        detailSideText.textContent = 'El avatar se genera automáticamente con las iniciales del cliente.';
       }
-      hint.textContent = detected.length
-        ? 'Se detecto automaticamente una tabla de productos. Puedes cambiarla si lo necesitas.'
-        : 'No se detecto una tabla clara. Selecciona manualmente la tabla correcta.';
-      return true;
+
+      buildItemFields(item);
+      itemModal.showModal();
     }
 
-    async function loadSelectedTable() {
-      const { schema, table } = getSelectedTableParts();
-      if (!schema || !table) {
-        hint.textContent = 'Selecciona una tabla de productos para comenzar.';
-        thead.innerHTML  = '';
-        tbody.innerHTML  = '';
-        allRows = []; columns = [];
-        updateSummary([]);
+    function collectFormValues(container) {
+      const values = {};
+
+      container.querySelectorAll('input[data-col], select[data-col], textarea[data-col]').forEach(input => {
+        if (input.disabled) return;
+        values[input.dataset.col] = input.value.trim();
+      });
+
+      return values;
+    }
+
+    function getMinimumForColumn(column) {
+      const normalized = normalizeColumnName(column);
+
+      if (
+        normalized.includes('stock') ||
+        normalized.includes('pedido') ||
+        normalized.includes('descontinuado')
+      ) {
+        return '0';
+      }
+
+      return '1';
+    }
+
+    function validateValues(values) {
+      for (const [column, value] of Object.entries(values)) {
+        if (value === '') continue;
+
+        if (isNumericColumn(column) && !isBooleanColumn(column)) {
+          const number = Number(value);
+
+          if (!Number.isFinite(number)) {
+            throw new Error(`El campo "${friendlyColumnName(column)}" debe ser un número válido.`);
+          }
+
+          const min = Number(getMinimumForColumn(column));
+
+          if (number < min) {
+            throw new Error(`El campo "${friendlyColumnName(column)}" no puede ser menor que ${min}.`);
+          }
+        }
+      }
+
+      const nameColumn = getNameColumn();
+
+      if (values[nameColumn] !== undefined && !String(values[nameColumn]).trim()) {
+        throw new Error('El nombre es obligatorio.');
+      }
+    }
+
+    async function saveItemChanges(event) {
+      event.preventDefault();
+
+      if (!selectedItem) return;
+
+      const values = collectFormValues(itemFields);
+
+      try {
+        validateValues(values);
+
+        const response = await fetch(`/api/table/${getConfig().schema}/${getConfig().table}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            pkValue: selectedItem[getPkColumn()],
+            changes: values
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'No se pudo actualizar el registro.');
+        }
+
+        if (!result.updated) {
+          throw new Error(result.error || 'No se actualizó ningún registro.');
+        }
+
+        itemModal.close();
+        showToast('Registro actualizado correctamente');
+        await loadModule(currentModule);
+        updateDetectedColumns();
+        renderItems();
+      } catch (error) {
+        showToast(error.message || 'Error al actualizar el registro', false);
+      }
+    }
+
+    async function deleteSelectedItem() {
+      if (!selectedItem) return;
+
+      const id = selectedItem[getPkColumn()];
+      const name = selectedItem[getNameColumn()] || 'Registro seleccionado';
+
+      if (!confirm(`¿Deseas eliminar este registro?\n\n${name}\n${friendlyColumnName(getPkColumn())}: ${id}`)) {
         return;
       }
 
-      currentSchema = schema;
-      currentTable  = table;
-      hint.textContent = 'Cargando datos de: ' + labelFor(schema, table) + '...';
-
       try {
-        const res  = await fetch('/api/table/' + schema + '/' + table + '?top=500');
-        const rows = await res.json();
+        const response = await fetch(`/api/table/${getConfig().schema}/${getConfig().table}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            pkValue: id
+          })
+        });
 
-        allRows = Array.isArray(rows) ? rows : [];
-        columns = allRows.length ? Object.keys(allRows[0]) : [];
+        const result = await response.json();
 
-        detectImportantColumns();
-
-        if (!columns.length) {
-          thead.innerHTML = '';
-          tbody.innerHTML = '<tr><td colspan="1"><div class="empty-state"><strong>La tabla no tiene registros.</strong><span class="muted">Inserta el primer producto.</span></div></td></tr>';
-          updateSummary([]);
-          buildInsertFields();
-          hint.textContent = 'Tabla cargada: ' + labelFor(schema, table) + '. Sin registros todavia.';
-          applyInitialSearchParam();
-          return;
+        if (!response.ok) {
+          throw new Error(result.error || 'No se pudo eliminar el registro.');
         }
 
-        buildHead();
-        page = 1;
-        buildBody();
-        buildInsertFields();
+        if (!result.deleted) {
+          throw new Error(result.error || 'No se eliminó ningún registro.');
+        }
 
-        hint.textContent = 'Tabla: ' + labelFor(schema, table) +
-          '. PK: ' + (pkColumn || 'no detectada') + '.' +
-          (stockColumn    ? ' Stock: '    + stockColumn + '.'    : ' Sin columna de stock.') +
-          (barcodeColumn  ? ' Cod. barras: ' + barcodeColumn + '.' : ' Sin columna de barras.');
-
-        applyInitialSearchParam();
-      } catch {
-        thead.innerHTML = '';
-        tbody.innerHTML = '<tr><td colspan="1"><div class="empty-state"><strong>No se pudieron cargar los productos.</strong><span class="muted">Revisa el backend o la conexion.</span></div></td></tr>';
-        updateSummary([]);
-        hint.textContent = 'Error al cargar la tabla.';
-        showToast('Error al cargar productos', false);
+        itemModal.close();
+        selectedItem = null;
+        showToast('Registro eliminado correctamente');
+        await loadModule(currentModule);
+        updateDetectedColumns();
+        renderItems();
+      } catch (error) {
+        showToast(error.message || 'Error al eliminar el registro', false);
       }
     }
 
-    /* ════════════════════════════════════════════════
-       ESCANER — logica identica a kardex.html
-    ════════════════════════════════════════════════ */
+    async function insertItem(event) {
+      event.preventDefault();
 
-    function showScannerError(msg) {
-      scannerError.textContent = msg;
+      const values = collectFormValues(insertFields);
+
+      try {
+        validateValues(values);
+
+        const response = await fetch(`/api/table/${getConfig().schema}/${getConfig().table}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            values
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'No se pudo insertar el registro.');
+        }
+
+        if (!result.inserted) {
+          throw new Error(result.error || 'No se insertó ningún registro.');
+        }
+
+        insertModal.close();
+        insertForm.reset();
+        showToast('Registro guardado correctamente');
+        await loadModule(currentModule);
+        updateDetectedColumns();
+        renderItems();
+      } catch (error) {
+        showToast(error.message || 'Error al insertar el registro', false);
+      }
+    }
+
+    function switchModule(moduleName) {
+      currentModule = moduleName;
+      page = 1;
+      selectedItem = null;
+
+      document.querySelectorAll('.module-tab').forEach(button => {
+        button.classList.toggle('active', button.dataset.module === moduleName);
+      });
+
+      const config = getConfig();
+
+      moduleBadge.textContent = config.badge;
+      moduleTitle.textContent = config.title;
+      moduleDescription.textContent = config.description;
+      sideTitle.textContent = config.sideTitle;
+      sideDescription.textContent = config.sideDescription;
+      insertTitle.textContent = config.insertTitle;
+      insertSubtitle.textContent = config.insertSubtitle;
+      itemsTitle.textContent = config.itemsTitle;
+      insertBtn.textContent = config.newButton;
+      searchInput.placeholder = config.searchPlaceholder;
+
+      if (moduleName === 'productos') {
+        stockFilterField.style.display = '';
+        scanSearchBtn.style.display = '';
+        brandFilter.placeholder = 'Ej: proveedor o marca...';
+        categoryFilter.placeholder = 'Ej: categoría...';
+      } else {
+        stockFilterField.style.display = 'none';
+        scanSearchBtn.style.display = 'none';
+        brandFilter.placeholder = 'Ej: empresa o contacto...';
+        categoryFilter.placeholder = 'Ej: ciudad o país...';
+      }
+
+      searchInput.value = '';
+      brandFilter.value = '';
+      categoryFilter.value = '';
+      stockFilter.value = 'all';
+
+      updateDetectedColumns();
+      buildInsertFields();
+      renderItems();
+
+      itemsInfo.textContent = `${getModuleRows().length} registro(s) cargado(s) desde dbo.${config.table}.`;
+    }
+
+    function showScannerError(message) {
+      scannerError.textContent = message;
       scannerError.style.display = 'block';
     }
 
     function hideScannerMessages() {
       scannerResult.style.display = 'none';
-      scannerError.style.display  = 'none';
-      scannerResult.textContent   = '';
-      scannerError.textContent    = '';
+      scannerError.style.display = 'none';
+      scannerResult.textContent = '';
+      scannerError.textContent = '';
     }
 
-    /**
-     * Abre el escaner.
-     * @param {HTMLInputElement|null} targetInput - input de destino (fila/formulario)
-     * @param {boolean} forSearch - true = el resultado va al searchInput y dispara busqueda
-     */
     async function openScannerForInput(targetInput, forSearch) {
       scannerTargetInput = targetInput;
-      scannerIsForSearch = !!forSearch;
+      scannerIsForSearch = Boolean(forSearch);
 
       hideScannerMessages();
       scannerContainer.style.display = 'none';
-      startScanner.style.display     = 'inline-block';
-      stopScanner.style.display      = 'none';
-      loadScannerCameras.disabled    = false;
+      startScanner.style.display = 'inline-block';
+      stopScanner.style.display = 'none';
+      loadScannerCameras.disabled = false;
 
       scannerModalTitle.textContent = forSearch
         ? 'Escanear para buscar producto'
-        : 'Escanear codigo de barras';
+        : 'Escanear código de barras';
 
       scannerModal.showModal();
       await cargarCamaras();
@@ -1034,55 +2228,55 @@
     async function cargarCamaras() {
       hideScannerMessages();
 
-      if (!navigator.mediaDevices ||
-          !navigator.mediaDevices.getUserMedia ||
-          !navigator.mediaDevices.enumerateDevices) {
-        showScannerError('Tu navegador no permite camaras desde esta pagina. Usa localhost o HTTPS.');
+      if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia ||
+        !navigator.mediaDevices.enumerateDevices
+      ) {
+        showScannerError('Tu navegador no permite cámaras desde esta página. Usa localhost o HTTPS.');
         return;
       }
 
       try {
-        // Pedir permiso primero (igual que kardex) para que aparezcan los labels
-        const tmpStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        tmpStream.getTracks().forEach(t => t.stop());
+        const tmpStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+
+        tmpStream.getTracks().forEach(track => track.stop());
 
         const dispositivos = await navigator.mediaDevices.enumerateDevices();
-        const camaras      = dispositivos.filter(d => d.kind === 'videoinput');
+        const camaras = dispositivos.filter(dispositivo => dispositivo.kind === 'videoinput');
 
         scannerCamera.innerHTML = '';
 
         if (!camaras.length) {
-          scannerCamera.innerHTML = '<option value="">No se encontraron camaras</option>';
-          showScannerError('No se encontro ninguna camara. Revisa que DroidCam este abierto.');
+          scannerCamera.innerHTML = '<option value="">No se encontraron cámaras</option>';
+          showScannerError('No se encontró ninguna cámara. Revisa que DroidCam esté abierto.');
           return;
         }
 
-        camaras.forEach((cam, i) => {
-          const opt       = document.createElement('option');
-          opt.value       = cam.deviceId;
-          opt.textContent = (cam.label && cam.label.trim() !== '') ? cam.label : 'Camara ' + (i + 1);
-          scannerCamera.appendChild(opt);
+        camaras.forEach((camara, index) => {
+          const option = document.createElement('option');
+
+          option.value = camara.deviceId;
+          option.textContent = camara.label && camara.label.trim() !== ''
+            ? camara.label
+            : `Cámara ${index + 1}`;
+
+          scannerCamera.appendChild(option);
         });
 
-        const idxDroid = camaras.findIndex(c => c.label.toLowerCase().includes('droidcam'));
-        scannerCamera.selectedIndex = idxDroid >= 0 ? idxDroid : 0;
+        const droidIndex = camaras.findIndex(camara =>
+          camara.label.toLowerCase().includes('droidcam')
+        );
 
-        showToast('Camaras cargadas');
-      } catch (err) {
-        console.error(err);
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          showScannerError('Permiso de camara denegado. Habilita la camara en el navegador.');
-          return;
-        }
-        if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-          showScannerError('No se encontro ninguna camara. Verifica que DroidCam este conectado.');
-          return;
-        }
-        if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-          showScannerError('La camara esta siendo usada por otra aplicacion. Cierrala e intenta de nuevo.');
-          return;
-        }
-        showScannerError('No se pudieron cargar las camaras. Revisa permisos del navegador.');
+        scannerCamera.selectedIndex = droidIndex >= 0 ? droidIndex : 0;
+
+        showToast('Cámaras cargadas');
+      } catch (error) {
+        console.error(error);
+        showScannerError('No se pudieron cargar las cámaras. Revisa permisos del navegador.');
       }
     }
 
@@ -1090,10 +2284,12 @@
       hideScannerMessages();
 
       const cameraId = scannerCamera.value;
+
       if (!cameraId) {
-        showScannerError('Primero carga y selecciona una camara.');
+        showScannerError('Primero carga y selecciona una cámara.');
         return;
       }
+
       if (scannerActivo) return;
 
       scannerContainer.style.display = 'block';
@@ -1104,33 +2300,47 @@
           target: scannerContainer,
           constraints: {
             deviceId: { exact: cameraId },
-            width:  { ideal: 1280 },
+            width: { ideal: 1280 },
             height: { ideal: 720 }
           },
-          area: { top: '20%', right: '5%', left: '5%', bottom: '20%' }
+          area: {
+            top: '20%',
+            right: '5%',
+            left: '5%',
+            bottom: '20%'
+          }
         },
-        locator:    { patchSize: 'medium', halfSample: false },
+        locator: {
+          patchSize: 'medium',
+          halfSample: false
+        },
         numOfWorkers: navigator.hardwareConcurrency || 4,
         frequency: 10,
         decoder: {
           readers: [
-            'upc_reader','upc_e_reader','ean_reader','ean_8_reader',
-            'code_128_reader','code_39_reader'
+            'upc_reader',
+            'upc_e_reader',
+            'ean_reader',
+            'ean_8_reader',
+            'code_128_reader',
+            'code_39_reader'
           ],
           multiple: false
         },
         locate: true
-      }, function(err) {
-        if (err) {
-          console.error(err);
-          showScannerError('No se pudo iniciar el escaner con la camara seleccionada.');
+      }, function(error) {
+        if (error) {
+          console.error(error);
+          showScannerError('No se pudo iniciar el escáner con la cámara seleccionada.');
           scannerContainer.style.display = 'none';
           return;
         }
+
         Quagga.start();
+
         scannerActivo = true;
-        startScanner.style.display  = 'none';
-        stopScanner.style.display   = 'inline-block';
+        startScanner.style.display = 'none';
+        stopScanner.style.display = 'inline-block';
         loadScannerCameras.disabled = true;
       });
 
@@ -1141,7 +2351,7 @@
     function onDetected(data) {
       if (!data || !data.codeResult || !data.codeResult.code) return;
 
-      const codigo  = data.codeResult.code;
+      const codigo = data.codeResult.code;
       const formato = data.codeResult.format;
 
       if (codigo === ultimoCodigo) {
@@ -1150,41 +2360,47 @@
         ultimoCodigo = codigo;
         repeticiones = 1;
       }
+
       if (repeticiones < 2) return;
 
-      // ── Colocar el codigo en el destino correcto ──
       if (scannerIsForSearch) {
-        // Busqueda general: llenar searchInput y filtrar la tabla
         searchInput.value = codigo;
         page = 1;
-        buildBody();
-        showToast('Codigo detectado: ' + codigo + '. Busqueda aplicada.');
+        renderItems();
+        showToast(`Código detectado: ${codigo}. Búsqueda aplicada.`);
       } else if (scannerTargetInput) {
-        // Campo de fila/formulario: comportamiento original
         scannerTargetInput.value = codigo;
-        scannerTargetInput.dispatchEvent(new Event('input',  { bubbles: true }));
+        scannerTargetInput.dispatchEvent(new Event('input', { bubbles: true }));
         scannerTargetInput.dispatchEvent(new Event('change', { bubbles: true }));
-        showToast('Codigo de barras detectado');
+        showToast('Código de barras detectado');
       }
 
-      scannerResult.textContent  = 'Codigo detectado: ' + codigo + ' (' + formato + ')';
+      scannerResult.textContent = `Código detectado: ${codigo} (${formato})`;
       scannerResult.style.display = 'block';
 
       detenerScanner();
 
       setTimeout(() => {
-        if (scannerModal.open) scannerModal.close();
+        if (scannerModal.open) {
+          scannerModal.close();
+        }
       }, 700);
     }
 
     function detenerScanner() {
       if (!scannerActivo) return;
-      try { Quagga.stop(); } catch (e) { console.error(e); }
+
+      try {
+        Quagga.stop();
+      } catch (error) {
+        console.error(error);
+      }
+
       scannerActivo = false;
       scannerContainer.style.display = 'none';
-      startScanner.style.display     = 'inline-block';
-      stopScanner.style.display      = 'none';
-      loadScannerCameras.disabled    = false;
+      startScanner.style.display = 'inline-block';
+      stopScanner.style.display = 'none';
+      loadScannerCameras.disabled = false;
       ultimoCodigo = null;
       repeticiones = 0;
     }
@@ -1194,10 +2410,58 @@
       scannerModal.close();
     }
 
-    /* ════════════════════════════════════════════════
-       EVENT LISTENERS — ESCANER
-    ════════════════════════════════════════════════ */
-    // Boton "Escanear" junto al campo de busqueda general
+    document.querySelectorAll('.module-tab').forEach(button => {
+      button.addEventListener('click', () => switchModule(button.dataset.module));
+    });
+
+    refreshBtn.addEventListener('click', async () => {
+      try {
+        await loadAllData();
+        showToast('Panel actualizado');
+      } catch (error) {
+        showToast(error.message || 'No se pudo actualizar', false);
+      }
+    });
+
+    [searchInput, brandFilter, categoryFilter].forEach(input => {
+      input.addEventListener('input', () => {
+        page = 1;
+        renderItems();
+      });
+    });
+
+    [stockFilter, pageSizeSel].forEach(select => {
+      select.addEventListener('change', () => {
+        page = 1;
+        renderItems();
+      });
+    });
+
+    prevBtn.addEventListener('click', () => {
+      page = Math.max(1, page - 1);
+      renderItems();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      page += 1;
+      renderItems();
+    });
+
+    insertBtn.addEventListener('click', () => {
+      buildInsertFields();
+      insertForm.reset();
+      insertModal.showModal();
+    });
+
+    closeInsert.addEventListener('click', () => insertModal.close());
+    cancelInsert.addEventListener('click', () => insertModal.close());
+    insertForm.addEventListener('submit', insertItem);
+
+    closeItemModal.addEventListener('click', () => itemModal.close());
+    cancelItemEdit.addEventListener('click', () => itemModal.close());
+    itemForm.addEventListener('submit', saveItemChanges);
+    deleteItemBtn.addEventListener('click', deleteSelectedItem);
+
     scanSearchBtn.addEventListener('click', () => openScannerForInput(null, true));
 
     loadScannerCameras.addEventListener('click', cargarCamaras);
@@ -1206,85 +2470,24 @@
     closeScanner.addEventListener('click', closeScannerModal);
     cancelScanner.addEventListener('click', closeScannerModal);
 
-    /* ════════════════════════════════════════════════
-       EVENT LISTENERS — PANEL
-    ════════════════════════════════════════════════ */
-    productsTableSel.addEventListener('change', () => { page = 1; loadSelectedTable(); });
-
-    refreshBtn.addEventListener('click', async () => {
-      try {
-        const prev = productsTableSel.value;
-        const ok   = await fetchTables();
-        if (!ok) return;
-        if ([...productsTableSel.options].some(o => o.value === prev))
-          productsTableSel.value = prev;
-        await loadSelectedTable();
-        showToast('Panel actualizado');
-      } catch { showToast('No se pudo actualizar', false); }
-    });
-
-    [searchInput, brandFilter, categoryFilter].forEach(inp => {
-      inp.addEventListener('input', () => { page = 1; buildBody(); });
-    });
-
-    [stockFilter, pageSizeSel].forEach(sel => {
-      sel.addEventListener('change', () => { page = 1; buildBody(); });
-    });
-
-    prevBtn.addEventListener('click', () => { page = Math.max(1, page - 1); buildBody(); });
-    nextBtn.addEventListener('click', () => { page = page + 1; buildBody(); });
-
-    insertBtn.addEventListener('click', () => {
-      if (!columns.length) {
-        showToast('Primero carga una tabla con columnas disponibles', false);
-        return;
-      }
-      insertTitle.textContent = 'Registrar nuevo producto automotriz';
-      insertModal.showModal();
-    });
-
-    closeInsert.addEventListener('click', () => insertModal.close());
-    cancelInsert.addEventListener('click', () => insertModal.close());
-
-    insertForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      try {
-        const values = {};
-        [...insertFields.querySelectorAll('input')].forEach(inp => {
-          if (!inp.disabled) values[inp.name] = inp.value.trim();
-        });
-        const res    = await fetch('/api/table/' + currentSchema + '/' + currentTable, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ values })
-        });
-        const result = await res.json();
-        if (result.inserted) {
-          insertModal.close();
-          showToast('Producto registrado');
-          await loadSelectedTable();
-          insertForm.reset();
-        } else {
-          showToast(result.error || 'No se pudo insertar', false);
-        }
-      } catch { showToast('Error al insertar el producto', false); }
-    });
-
-    /* ════════════════════════════════════════════════
-       INICIO
-    ════════════════════════════════════════════════ */
     async function initPanel() {
       try {
-        const ok = await fetchTables();
-        if (!ok) return;
-        await loadSelectedTable();
-      } catch {
-        hint.textContent = 'No se pudo iniciar el panel.';
-        showToast('Error al iniciar el panel', false);
+        await loadAllData();
+      } catch (error) {
+        itemsInfo.textContent = 'No se pudo cargar el módulo.';
+        itemsGrid.innerHTML = `
+          <div class="empty-items" style="grid-column:1/-1;">
+            <strong>Error al cargar datos.</strong><br>
+            ${escapeHtml(error.message || 'Revisa el backend o la conexión.')}
+          </div>
+        `;
+        showToast(error.message || 'Error al iniciar el panel', false);
       }
     }
 
     initPanel();
   </script>
+
+  <script src="/auth-widget.js?v=30"></script>
 </body>
 </html>

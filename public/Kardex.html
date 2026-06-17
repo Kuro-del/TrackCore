@@ -1041,7 +1041,7 @@
       productProviderInfo.textContent = product[cols.provider] ?? 'No detectado';
       productCategoryInfo.textContent = product[cols.category] ?? 'No detectada';
       productUnitInfo.textContent = product[cols.unit] ?? 'No detectada';
-      productPriceInfo.textContent = `C$ ${formatMoney(product[cols.price])}`;
+      productPriceInfo.textContent = `$ ${formatMoney(product[cols.price])}`;
       productReorderInfo.textContent = product[cols.reorder] ?? '0';
       productStatusInfo.textContent = String(discontinuedValue) === '1' || discontinuedValue === true
         ? 'Descontinuado'
@@ -1210,7 +1210,7 @@
             <td class="num">${movement.newStock}</td>
             <td class="num ${impactClass}">
               ${impactText}<br>
-              <small>C$ ${formatMoney(costImpact)}</small>
+              <small>$ ${formatMoney(costImpact)}</small>
             </td>
           </tr>
         `;

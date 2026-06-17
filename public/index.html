@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>TrackCore – Dashboard</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="style.css?v=11" />
+  <link rel="stylesheet" href="style.css?v=15" />
 
   <!-- Librería Quagga para escaneo -->
   <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
@@ -453,7 +453,7 @@
 
     .quick-links-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 1rem;
     }
 
@@ -646,9 +646,10 @@
         </div>
 
         <div class="dashboard-hero-actions">
-          <a href="panel.html" class="btn primary">Gestionar productos</a>
+          <a href="panel.html" class="btn primary">Gestión General</a>
           <a href="kardex.html" class="btn btn-light">Registrar movimiento</a>
           <a href="reportes.html" class="btn ghost">Ver reportes</a>
+          <a href="auditoria.html" class="btn ghost">Ver auditoría</a>
           <button type="button" id="refreshDashboardBtn" class="btn ghost">Actualizar dashboard</button>
         </div>
       </article>
@@ -807,7 +808,7 @@
           </div>
 
           <div class="alert-card">
-            <strong>Valor estimado <span id="alertInventoryValue">C$ 0.00</span></strong>
+            <strong>Valor estimado <span id="alertInventoryValue">$ 0.00</span></strong>
             <p>Estimación basada en stock actual por precio unitario.</p>
           </div>
         </div>
@@ -860,6 +861,17 @@
             </p>
           </div>
           <span class="quick-link-cta">Ver reportes →</span>
+        </a>
+
+        <a href="auditoria.html" class="quick-link-card">
+          <div>
+            <div class="quick-link-icon">AU</div>
+            <h3>Auditoría</h3>
+            <p>
+              Revisa cambios automáticos registrados por triggers en productos y Kardex.
+            </p>
+          </div>
+          <span class="quick-link-cta">Ver auditoría →</span>
         </a>
       </div>
     </section>
@@ -1004,7 +1016,7 @@
     function formatMoney(value) {
       const number = Number(value) || 0;
 
-      return 'C$ ' + number.toLocaleString('es-NI', {
+      return '$ ' + number.toLocaleString('es-NI', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
@@ -1724,6 +1736,6 @@
     initDashboard();
   </script>
 
-  <script src="/auth-widget.js?v=11"></script>
+  <script src="/auth-widget.js?v=13"></script>
 </body>
 </html>

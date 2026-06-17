@@ -821,9 +821,85 @@ app.post('/api/auth/set-security-question', requireAuthApi, async (req, res, nex
   }
 });
 
+/* ================== API DE AUDITORÍA ================== */
+
+app.get('/api/auditoria', requireAuthApi, async (req, res, next) => {
+  try {
+    const db = await getPool();
+
+    const top = clampTop(req.query.top);
+    const search = String(req.query.search || '').trim();
+    const table = String(req.query.table || '').trim();
+    const operation = String(req.query.operation || '').trim();
+
+    const request = db.request();
+
+    request.input('top', sql.Int, top);
+
+    let whereSql = 'WHERE 1 = 1';
+
+    if (search) {
+      request.input('Search', sql.NVarChar(200), `%${search}%`);
+
+      whereSql += `
+        AND (
+          Tabla LIKE @Search
+          OR Operacion LIKE @Search
+          OR CodigoBarra LIKE @Search
+          OR NombreRegistro LIKE @Search
+          OR Campo LIKE @Search
+          OR ValorAnterior LIKE @Search
+          OR ValorNuevo LIKE @Search
+          OR UsuarioBD LIKE @Search
+          OR Detalle LIKE @Search
+        )
+      `;
+    }
+
+    if (table) {
+      request.input('Tabla', sql.NVarChar(128), table);
+      whereSql += ' AND Tabla = @Tabla';
+    }
+
+    if (operation) {
+      request.input('Operacion', sql.NVarChar(20), operation);
+      whereSql += ' AND Operacion = @Operacion';
+    }
+
+    const result = await request.query(`
+      SELECT TOP (@top)
+        IDAuditoria,
+        Tabla,
+        Operacion,
+        IDRegistro,
+        CodigoBarra,
+        NombreRegistro,
+        Campo,
+        ValorAnterior,
+        ValorNuevo,
+        UsuarioBD,
+        HostName,
+        Aplicacion,
+        Fecha,
+        Detalle
+      FROM dbo.AuditoriaInventario
+      ${whereSql}
+      ORDER BY Fecha DESC, IDAuditoria DESC;
+    `);
+
+    res.json(result.recordset);
+  } catch (error) {
+    next(error);
+  }
+});
+
+console.log('Ruta cargada: GET /api/auditoria');
+
 /* ================== PROTEGER APIs ================== */
 
 app.use('/api', requireAuthApi);
+
+
 
 /* ================== TABLES API DINÁMICA ================== */
 
@@ -1307,6 +1383,9 @@ app.use((error, req, res, next) => {
     error: message
   });
 });
+
+console.log('Servidor cargado desde:', __filename);
+console.log('Ruta disponible: GET /api/auditoria');
 
 const PORT = toInt(process.env.PORT, 3000);
 

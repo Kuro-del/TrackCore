@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>TrackCore – Auditoría</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css?v=14" />
+
+  <style>
+    .audit-main {
+      width: min(1450px, calc(100% - 2rem));
+      margin: 1.2rem auto 2rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .audit-hero {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .audit-title {
+      margin: 0;
+      font-size: 1.75rem;
+      color: var(--text);
+    }
+
+    .audit-text {
+      margin: 0.45rem 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .audit-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+
+    .audit-stat {
+      padding: 1rem;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .audit-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.35rem;
+    }
+
+    .audit-stat strong {
+      display: block;
+      font-size: 1.6rem;
+      color: var(--text);
+    }
+
+    .audit-filters {
+      display: grid;
+      grid-template-columns: 1.5fr 0.8fr 0.8fr 0.6fr auto;
+      gap: 0.75rem;
+      align-items: end;
+    }
+
+    .audit-table-wrap {
+      overflow: auto;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .audit-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1150px;
+      font-size: 0.88rem;
+    }
+
+    .audit-table th,
+    .audit-table td {
+      padding: 0.85rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .audit-table th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--header-bg);
+      color: #fff;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .audit-table tbody tr:hover {
+      background: var(--primary-soft);
+    }
+
+    .badge-op {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.35rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-insert {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .badge-update {
+      background: var(--warning-soft);
+      color: var(--warning);
+    }
+
+    .badge-delete {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .audit-muted {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .audit-value {
+      max-width: 260px;
+      white-space: normal;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .audit-empty {
+      padding: 2rem;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    @media (max-width: 1100px) {
+      .audit-hero {
+        grid-template-columns: 1fr;
+      }
+
+      .audit-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .audit-filters {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .audit-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .audit-filters {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="appbar">
+    <a href="index.html" class="brand" aria-label="Volver al inicio">
+      <span class="brand-logo" aria-hidden="true">
+        <svg width="23" height="23" viewBox="0 0 24 24">
+          <path
+            fill="currentColor"
+            d="M3 5a2 2 0 0 1 2-2h6v4H5a2 2 0 0 1-2-2zm10-2h4a2 2 0 0 1 2 2v4h-6V3zm6 10v4a2 2 0 0 1-2 2h-4v-6h6zM11 13v6H5a2 2 0 0 1-2-2v-4h8z"
+          />
+        </svg>
+      </span>
+
+      <span>
+        <strong>TrackCore</strong>
+        <small>Auditoría del sistema</small>
+      </span>
+    </a>
+
+    <div class="actions">
+      <a href="index.html" class="btn btn-light">Inicio</a>
+      <button id="refreshBtn" class="btn primary" type="button">Actualizar</button>
+    </div>
+  </header>
+
+  <main class="audit-main">
+    <section class="audit-hero">
+      <div class="card">
+        <h1 class="audit-title">Auditoría de inventario</h1>
+        <p class="audit-text">
+          Aquí se muestran los cambios registrados automáticamente por triggers:
+          productos creados, modificados, eliminados y movimientos realizados en el Kardex.
+        </p>
+      </div>
+
+      <div class="card">
+        <p class="audit-text">
+          Cada registro se genera desde SQL Server, por lo que la auditoría queda guardada
+          aunque el cambio venga desde la página o desde una consulta directa en la base de datos.
+        </p>
+      </div>
+    </section>
+
+    <section class="audit-stats">
+      <article class="audit-stat">
+        <span>Total eventos</span>
+        <strong id="statTotal">0</strong>
+      </article>
+
+      <article class="audit-stat">
+        <span>Insertados</span>
+        <strong id="statInsert">0</strong>
+      </article>
+
+      <article class="audit-stat">
+        <span>Actualizados</span>
+        <strong id="statUpdate">0</strong>
+      </article>
+
+      <article class="audit-stat">
+        <span>Eliminados</span>
+        <strong id="statDelete">0</strong>
+      </article>
+    </section>
+
+    <section class="card">
+      <div class="audit-filters">
+        <div class="field">
+          <label for="searchInput">Buscar</label>
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Producto, código, campo, usuario o detalle..."
+          />
+        </div>
+
+        <div class="field">
+          <label for="tableFilter">Tabla</label>
+          <select id="tableFilter">
+            <option value="">Todas</option>
+            <option value="dbo.Productos">Productos</option>
+            <option value="dbo.KardexInventario">Kardex</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="operationFilter">Operación</label>
+          <select id="operationFilter">
+            <option value="">Todas</option>
+            <option value="INSERT">INSERT</option>
+            <option value="UPDATE">UPDATE</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="topFilter">Cantidad</label>
+          <select id="topFilter">
+            <option value="100">100</option>
+            <option value="200" selected>200</option>
+            <option value="500">500</option>
+          </select>
+        </div>
+
+        <button id="applyFiltersBtn" type="button" class="btn primary">
+          Aplicar
+        </button>
+      </div>
+    </section>
+
+    <section class="audit-table-wrap">
+      <table class="audit-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Operación</th>
+            <th>Tabla</th>
+            <th>Registro</th>
+            <th>Campo</th>
+            <th>Valor anterior</th>
+            <th>Valor nuevo</th>
+            <th>Usuario BD</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+
+        <tbody id="auditBody">
+          <tr>
+            <td colspan="9" class="audit-empty">Cargando auditoría...</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const auditBody = document.getElementById('auditBody');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+
+    const searchInput = document.getElementById('searchInput');
+    const tableFilter = document.getElementById('tableFilter');
+    const operationFilter = document.getElementById('operationFilter');
+    const topFilter = document.getElementById('topFilter');
+
+    const statTotal = document.getElementById('statTotal');
+    const statInsert = document.getElementById('statInsert');
+    const statUpdate = document.getElementById('statUpdate');
+    const statDelete = document.getElementById('statDelete');
+
+    let auditRows = [];
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function formatDate(value) {
+      if (!value) return '—';
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+
+      return date.toLocaleString('es-NI', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function operationBadge(operation) {
+      const op = String(operation || '').toUpperCase();
+
+      if (op === 'INSERT') {
+        return '<span class="badge-op badge-insert">INSERT</span>';
+      }
+
+      if (op === 'UPDATE') {
+        return '<span class="badge-op badge-update">UPDATE</span>';
+      }
+
+      if (op === 'DELETE') {
+        return '<span class="badge-op badge-delete">DELETE</span>';
+      }
+
+      return `<span class="badge-op">${escapeHtml(op || '—')}</span>`;
+    }
+
+    function renderStats() {
+      statTotal.textContent = auditRows.length;
+      statInsert.textContent = auditRows.filter(row => row.Operacion === 'INSERT').length;
+      statUpdate.textContent = auditRows.filter(row => row.Operacion === 'UPDATE').length;
+      statDelete.textContent = auditRows.filter(row => row.Operacion === 'DELETE').length;
+    }
+
+    function renderAudit() {
+      if (!auditRows.length) {
+        auditBody.innerHTML = `
+          <tr>
+            <td colspan="9" class="audit-empty">
+              No hay registros de auditoría con los filtros actuales.
+            </td>
+          </tr>
+        `;
+        renderStats();
+        return;
+      }
+
+      auditBody.innerHTML = auditRows.map(row => {
+        const registro = [
+          row.NombreRegistro ? escapeHtml(row.NombreRegistro) : '',
+          row.CodigoBarra ? `<span class="audit-muted">Código: ${escapeHtml(row.CodigoBarra)}</span>` : '',
+          row.IDRegistro ? `<span class="audit-muted">ID: ${escapeHtml(row.IDRegistro)}</span>` : ''
+        ].filter(Boolean).join('<br>');
+
+        return `
+          <tr>
+            <td>${escapeHtml(formatDate(row.Fecha))}</td>
+            <td>${operationBadge(row.Operacion)}</td>
+            <td>${escapeHtml(row.Tabla || '—')}</td>
+            <td>${registro || '—'}</td>
+            <td>${escapeHtml(row.Campo || '—')}</td>
+            <td class="audit-value">${escapeHtml(row.ValorAnterior || '—')}</td>
+            <td class="audit-value">${escapeHtml(row.ValorNuevo || '—')}</td>
+            <td>${escapeHtml(row.UsuarioBD || '—')}</td>
+            <td class="audit-value">${escapeHtml(row.Detalle || '—')}</td>
+          </tr>
+        `;
+      }).join('');
+
+      renderStats();
+    }
+
+    async function loadAudit() {
+      auditBody.innerHTML = `
+        <tr>
+          <td colspan="9" class="audit-empty">Cargando auditoría...</td>
+        </tr>
+      `;
+
+      const params = new URLSearchParams();
+
+      params.set('top', topFilter.value || '200');
+
+      if (searchInput.value.trim()) {
+        params.set('search', searchInput.value.trim());
+      }
+
+      if (tableFilter.value) {
+        params.set('table', tableFilter.value);
+      }
+
+      if (operationFilter.value) {
+        params.set('operation', operationFilter.value);
+      }
+
+      try {
+        const response = await fetch(`/api/auditoria?${params.toString()}&t=${Date.now()}`, {
+          credentials: 'include',
+          cache: 'no-store'
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'No se pudo cargar la auditoría.');
+        }
+
+        auditRows = Array.isArray(data) ? data : [];
+        renderAudit();
+      } catch (error) {
+        auditRows = [];
+        auditBody.innerHTML = `
+          <tr>
+            <td colspan="9" class="audit-empty">
+              ${escapeHtml(error.message || 'No se pudo cargar la auditoría.')}
+            </td>
+          </tr>
+        `;
+        renderStats();
+      }
+    }
+
+    refreshBtn.addEventListener('click', loadAudit);
+    applyFiltersBtn.addEventListener('click', loadAudit);
+
+    searchInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        loadAudit();
+      }
+    });
+
+    loadAudit();
+  </script>
+
+  <script src="/auth-widget.js?v=13"></script>
+</body>
+</html>

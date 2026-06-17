@@ -123,13 +123,13 @@
 
         <div class="stat-card">
           <span class="stat-label">Impacto entradas</span>
-          <span class="stat-value" id="statInputCost">C$ 0.00</span>
+          <span class="stat-value" id="statInputCost">$ 0.00</span>
           <span class="stat-helper muted">Valor monetario positivo</span>
         </div>
 
         <div class="stat-card">
           <span class="stat-label">Impacto salidas</span>
-          <span class="stat-value" id="statOutputCost">C$ 0.00</span>
+          <span class="stat-value" id="statOutputCost">$ 0.00</span>
           <span class="stat-helper muted">Valor monetario descontado</span>
         </div>
       </div>
@@ -263,7 +263,7 @@
     function formatMoney(value) {
       const number = Number(value) || 0;
 
-      return 'C$ ' + number.toLocaleString('es-NI', {
+      return '$ ' + number.toLocaleString('es-NI', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
